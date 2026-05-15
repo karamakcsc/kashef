@@ -124,6 +124,10 @@ class AppLocalizations {
 
     // ── Dashboards ────────────────────────────────────────────────────────────
     'noDashboards':       {'en': 'No dashboards found',  'ar': 'لا توجد لوحات بيانات'},
+    'dashSearchHint':     {'en': 'Search dashboards…',   'ar': 'بحث في اللوحات…'},
+    'dashCompany':        {'en': 'Company',               'ar': 'الشركة'},
+    'dashViewAll':        {'en': 'View all',              'ar': 'عرض الكل'},
+    'dashNoPermission':   {'en': 'No permission',         'ar': 'لا صلاحية'},
 
     // ── Dashboard Detail ──────────────────────────────────────────────────────
     'updatedAt':          {'en': 'Updated',              'ar': 'تم التحديث'},
@@ -448,6 +452,10 @@ class AppLocalizations {
   String get bankReconciliation  => _t('bankReconciliation');
 
   String get noDashboards        => _t('noDashboards');
+  String get dashSearchHint      => _t('dashSearchHint');
+  String get dashCompany         => _t('dashCompany');
+  String get dashViewAll         => _t('dashViewAll');
+  String get dashNoPermission    => _t('dashNoPermission');
   String get updatedAt           => _t('updatedAt');
   String get autoEvery5Min       => _t('autoEvery5Min');
   String get dateRangeShort      => _t('dateRangeShort');
