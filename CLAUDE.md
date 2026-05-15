@@ -10,7 +10,7 @@
 | الحقل | القيمة |
 |-------|--------|
 | Package | `kcsc_ai` |
-| Version | `1.0.76+76` (آخر APK: قيد البناء، آخر Web: /kcsc-ai/) |
+| Version | `1.0.76+76` (آخر APK: 64.6 MB، آخر Web: /kcsc-ai/) |
 | Flutter SDK | `≥ 3.11.3` |
 | اللغة الافتراضية | العربية (RTL) |
 | Backend | Frappe/ERPNext — `https://erpnext-16.kcsc.com.jo` |
@@ -40,10 +40,10 @@ lib/
 ├── module_reports_page.dart     # قائمة التقارير — المرجع لنمط فحص الصلاحيات
 ├── module_permission_page.dart  # شاشة رفض الصلاحيات
 ├── report_view_page.dart        # عرض التقارير الديناميكي مع فلاتر
-├── dashboards_page.dart         # قائمة لوحات المعلومات
-├── dashboard_detail_page.dart   # عرض لوحة معلومات مع رسوم بيانية
+├── dashboards_page.dart         # قائمة لوحات المعلومات — search + responsive grid (2 أعمدة ≥700px) + ApiService.get()
+├── dashboard_detail_page.dart   # عرض لوحة معلومات — fl_chart + FAC-first + responsive (sidebar web / scroll mobile) + Company filter + Pending widget
 ├── accounting_dashboard.dart    # ⚠️ UI ثابت — غير مكتمل، لا تُكمل بدون تنسيق
-├── ai_assistant_page.dart       # مساعد Claude AI عبر MCP — القلب الذكي للتطبيق
+├── ai_assistant_page.dart       # مساعد Claude AI عبر MCP — القلب الذكي للتطبيق؛ بطاقات الموديولات الستة مُخفاة — شاشة ترحيب فقط
 ├── chat_history_page.dart       # عرض وتحميل سجل المحادثات المحفوظة في ERPNext (Note)
 ├── message_renderer.dart        # عرض غني: جداول HTML + رسوم fl_chart + أزرار PDF/Excel/بريد + `<open_document>` tags
 ├── workflow_models.dart         # نماذج بيانات: PendingDoc + WorkflowSource enum (facTool/workflowAction/dynamicScan)
@@ -53,8 +53,8 @@ lib/
 ├── workflow_service.dart        # Singleton — getWorkflow/getTransitions/applyWorkflow/safeApplyWorkflow
 ├── realtime_workflow_service.dart # Singleton — Socket.IO + Polling (WorkflowRepository) + listeners
 ├── document_viewer_page.dart    # عارض مستندات read-only — FAC runWorkflow → safeApplyWorkflow fallback
-├── pending_approvals_page.dart  # قائمة الموافقات — HTTP مباشر لـ FAC MCP + AppColors + بحث + فلتر + auto-refresh
-├── approved_page.dart           # المستندات المعتمدة — Workflow Action (Completed) + تجميع + Cancel عبر FAC
+├── pending_approvals_page.dart  # قائمة الموافقات — FAC MCP HTTP مباشر + i18n كامل AR/EN + AppBar احترافي (white arrow + systemOverlayStyle + elevation) + subtitle
+├── approved_page.dart           # المستندات المعتمدة — Workflow Action (Completed) + تجميع + Cancel عبر FAC + i18n كامل AR/EN + AppBar احترافي
 └── n8n_chat_page.dart           # دردشة بديلة عبر n8n webhook
 
 images/
@@ -314,7 +314,7 @@ _loadCachedDefs()   → تُستدعى عند فتح التقرير — تتخط
 - **حفظ تلقائي في ERPNext** — كل رسالة تُحفظ فوراً كـ Note (تنسيق AICHAT_V1)
 - **استئناف المحادثات** — `chat_history_page.dart` يعرض السجل السابق ويُعيد تحميله
 - **ذاكرة بين الجلسات** — آخر 10 رسائل تُحفظ في SharedPreferences وتُستعاد فوراً بدون HTTP
-- **HR Quick Actions / Module Cards** — شبكة 2×3 للموديولات الرئيسية في الشاشة الفارغة
+- **شاشة ترحيب نظيفة** — بطاقات الموديولات الستة (Purchasing/Accounting/HR/Inventory/Manufacturing/Sales) مُخفاة بالكامل — `_ModuleInfo`/`_ModuleCard`/`_modules` محذوفة، `_InlineModuleGrid` → `SizedBox.shrink()`
 - **رسالة ترحيب احترافية** — تُحقن تلقائياً عند الفتح/المحادثة الجديدة/تغيير الموديول
 - **Module Specialization** — زر موديولات في AppBar يفعّل وكيلاً متخصصاً لكل موديول
 - **دعم مرفقات متعددة** — كاميرا/معرض/ملف/ملفاتي في النظام/من المحادثة (WhatsApp style)
@@ -487,6 +487,49 @@ WorkflowService().invalidateAll()                  // مسح كامل (logout)
 - صفوف الجدول قابلة للضغط إذا وُجد `ref_doctype` + عمود `name`
 - الضغط ينتقل مباشرة لـ `DocumentViewerPage(doctype: _refDoctype, docname: docname)`
 
+### 7.7 نظام لوحات المعلومات (Dashboard System)
+
+#### dashboards_page.dart — قائمة اللوحات
+- `ApiService.get('/api/resource/Dashboard')` — جلب الكل، تجميع حسب module
+- Search bar مع clear button + Responsive grid (`LayoutBuilder` — عمودان ≥700px)
+- Pull-to-refresh + silent auto-refresh كل 5 دقائق
+- `Material + InkWell` بدل `ListTile` لتأثير ضغط صحيح
+
+#### dashboard_detail_page.dart — تفاصيل اللوحة
+
+**طبقة `_DashService` (FAC-first + ERPNext fallback + 5-min cache):**
+```dart
+_DashService.fetchChartMeta(chartName)     // metadata + filters من ERPNext
+_DashService.fetchChartData(chartName, {   // data من frappe.desk.dashboard_chart.get
+  timespan, timegrain, useDateRange,
+  fromDate, toDate, company, extraFilters
+})
+_DashService.fetchPendingCount()           // FAC أولاً → ERPNext fallback
+_DashService.fetchCompanies()             // قائمة الشركات لـ dropdown
+_DashService.invalidate()                 // مسح كاش كامل
+```
+
+**أنواع الـ Widgets:**
+| Widget | الوصف |
+|--------|-------|
+| `_KpiCard` | Count/Sum/Average — رقم كبير + أيقونة |
+| `_BarChartCard` | fl_chart BarChart — touch + tooltip |
+| `_LineChartCard` | fl_chart LineChart — isCurved + area fill |
+| `_PieChartCard` | fl_chart PieChart/Donut — legend + touch |
+| `_DataTableCard` | DataTable قابل للتوسع (5 صفوف → الكل) |
+| `_PendingWidget` | عدد الموافقات + رابط لـ `/pending-approvals` |
+
+**Responsive Layout:**
+- `< 768px` → `CustomScrollView` عمودي + `_FilterStrip` أعلى + bottom sheet للفلاتر
+- `≥ 768px` → `Row`: `_FilterSidebar` (220px، قابل للطي 48px) + grid (2 أو 3 أعمدة)
+
+**نظام الفلاتر:**
+- **عالمي:** Company (dropdown) + Timespan (Last Week/Month/Quarter/Year) + Timegrain (Daily→Yearly) + Date Range (custom)
+- **per-chart:** `_ChartFiltersSheet` — تعديل يدوي للفلاتر [fieldname, op, value]
+- حفظ في `SharedPreferences` عبر مفتاح `erpnext_company`
+
+**AppBar:** `iconTheme(white)` + `systemOverlayStyle.light` + `elevation:2` + subtitle آخر تحديث
+
 ---
 
 ## 8. نظام الألوان والتصميم
@@ -532,6 +575,13 @@ AppColors.error    // Color(0xFFEF4444) — red-500
 - **شبكة الوحدات** — `GridView.count` بعمودين
 - **فقاعات الدردشة** — عرض 78% من الشاشة
 - **RTL أولاً** — التطبيق مُصمَّم للعربية، تحقق دائماً من التوافق
+- **AppBar الملوّن** — عند استخدام `backgroundColor: c.primary` أو `AppColors.success`، أضف دائماً:
+  ```dart
+  iconTheme: const IconThemeData(color: Colors.white), // يُصلح سهم الرجوع
+  systemOverlayStyle: SystemUiOverlayStyle.light,       // شريط الحالة أبيض
+  elevation: 2, shadowColor: Colors.black.withValues(alpha: 0.2),
+  ```
+  السبب: `appBarTheme.iconTheme(color: textSecondary)` في `app_theme.dart` يُلغي `foregroundColor` المحلي — `iconTheme` المحلي يتجاوزه.
 
 ---
 
@@ -539,8 +589,9 @@ AppColors.error    // Color(0xFFEF4444) — red-500
 
 - **الملف:** `app_localizations.dart` (يدوي، بلا `.arb`)
 - **اللغات:** `ar` (افتراضي) + `en`
-- **200+ نص** — تبديل فوري، يُحفظ في SharedPreferences
-- **`report_view_page.dart`** — جميع نصوص الواجهة عبر `AppLocalizations` (لا نصوص مُضمَّنة)
+- **230+ نص** — تبديل فوري، يُحفظ في SharedPreferences
+- **`report_view_page.dart`** + **`pending_approvals_page.dart`** + **`approved_page.dart`** + **`dashboard_detail_page.dart`** — جميع نصوص الواجهة عبر `AppLocalizations` (لا نصوص مُضمَّنة)
+- **مفاتيح i18n جديدة (2026-05-15):** `wfSearchHint`/`wfFallbackMode`/`wfFallbackDetails`/`wfLocalizeAction()`/`wfLastNDays(n)`/`wfExecutingMsg`/`wfActionDoneMsg`/`wfActionCancelledMsg`/`dashSearchHint`/`dashCompany`/`dashViewAll`/`dashNoPermission`
 
 ```dart
 // الاستخدام الصحيح
@@ -559,7 +610,7 @@ shared_preferences: ^2.2.2  # تخزين محلي للإعدادات
 record: ^6.0.0              # تسجيل صوتي (m4a/aac) → يُرسل لـ Whisper API
 intl: any                   # تدويل وتنسيق التواريخ
 path_provider: ^2.1.3       # الوصول لنظام الملفات (ملفات مؤقتة للتسجيل + التصدير)
-fl_chart: ^0.68.0           # رسوم بيانية في AI Assistant (bar/line/pie)
+fl_chart: ^0.68.0           # رسوم بيانية في AI Assistant + Dashboard (bar/line/pie/donut) — يحل محل Custom Painters في Dashboard
 file_picker: ^8.1.2         # اختيار ملفات (SAF — بدون صلاحيات) + استيراد الإعدادات
 pdf: ^3.10.8               # توليد PDF من الجداول (خط Cairo للعربية)
 printing: ^5.12.0          # مشاركة/طباعة PDF عبر share sheet
@@ -587,10 +638,15 @@ flutter_launcher_icons: ^0.14.3  # توليد أيقونات التطبيق (dev
 
 ### استدعاء API
 ```dart
-// ✅ صحيح
-final apiService = ApiService();
-final result = await apiService.get('/api/resource/DocType');
+// ✅ صحيح — ApiService methods هي static
+final result = await ApiService.get('/api/resource/DocType');
 if (result['exc'] != null) { /* عالج الخطأ */ }
+
+// ✅ POST
+final res = await ApiService.post('/api/resource/DocType', {'fieldname': 'value'});
+
+// ✅ POST form-encoded
+final res = await ApiService.postForm('/api/method/frappe.client.get_list', {'doctype': 'X'});
 
 // ❌ خطأ — لا تستخدم http مباشرة
 final response = await http.get(Uri.parse('...'));
@@ -646,6 +702,8 @@ Container(color: Color(0xFFXXXXXX))
 | ~~`test/widget_test.dart`~~ | ~~يشير لـ `main_old.dart` المحذوف~~ | ✅ تم الحل |
 | ~~`pending_approvals_page.dart`~~ | ~~يعتمد فقط على Workflow Action — يفوّت Draft docs~~ | ✅ تم الحل — SOURCE 0+A+B |
 | ~~`document_viewer_page.dart`~~ | ~~`applyWorkflow` مباشر — قد يُعيد 417~~ | ✅ تم الحل — FAC + safeApplyWorkflow |
+| ~~`dashboards_page.dart` + `dashboard_detail_page.dart`~~ | ~~يستخدم `http` مباشرة بدون FAC وبدون fl_chart — custom painters قديمة~~ | ✅ تم الحل — إعادة بناء كاملة: fl_chart + FAC-first + responsive |
+| ~~`pending_approvals_page.dart` + `approved_page.dart`~~ | ~~نصوص مُضمَّنة بالإنجليزي فقط — لا i18n لأزرار الإجراءات~~ | ✅ تم الحل — `wfLocalizeAction` + 8 مفاتيح جديدة |
 | `accounting_dashboard.dart` | UI ثابت بيانات ثابتة، التنقل الداخلي غير مُطبَّق | 🔴 عالية |
 | `FacMcpService` — Backend | يحتاج FAC مثبتاً على الخادم؛ إذا غير مثبت → يعمل بـ SOURCE A+B فقط | 🟡 متوسطة |
 | `RealtimeWorkflowService` — Socket.IO | يحتاج `hooks.py` + `api.py` على الخادم (انظر `FAC_REALTIME_SETUP.md`) | 🟡 متوسطة |
