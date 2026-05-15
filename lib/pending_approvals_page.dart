@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -993,36 +994,63 @@ class _State extends State<PendingApprovalsPage> {
 
   PreferredSizeWidget _appBar(AppColors c, AppLocalizations l) => AppBar(
     backgroundColor: c.primary,
-    foregroundColor: c.onPrimary,
-    elevation: 0,
-    title: Row(
-      children: [
-        Flexible(
-          child: Text(l.wfPendingApprovals,
-              style: TextStyle(color: c.onPrimary, fontWeight: FontWeight.bold),
-              overflow: TextOverflow.ellipsis),
-        ),
-        if (_total > 0) ...[
-          const SizedBox(width: 8),
-          _Badge(n: _total),
+    foregroundColor: Colors.white,
+    iconTheme: const IconThemeData(color: Colors.white),
+    systemOverlayStyle: SystemUiOverlayStyle.light,
+    elevation: 3,
+    shadowColor: Colors.black.withValues(alpha: 0.25),
+    titleSpacing: 0,
+    title: Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: [
+            Text(l.wfPendingApprovals,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  letterSpacing: 0.2,
+                ),
+                overflow: TextOverflow.ellipsis),
+            if (_total > 0) ...[
+              const SizedBox(width: 8),
+              _Badge(n: _total),
+            ],
+          ]),
+          if (_total > 0)
+            Text(
+              l.isArabic ? '$_total بند في الانتظار' : '$_total pending',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 11,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
         ],
-      ],
+      ),
     ),
     actions: [
       if (_refreshing)
-        const Padding(padding: EdgeInsets.all(14),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: SizedBox(width: 20, height: 20,
             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
       else
         IconButton(
-          icon: Icon(Icons.refresh_rounded, color: c.onPrimary),
+          icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+          tooltip: null,
           onPressed: _manualRefresh,
         ),
       IconButton(
-        icon: Icon(Icons.bug_report_outlined, color: c.onPrimary.withValues(alpha: 0.7), size: 20),
+        icon: Icon(Icons.bug_report_outlined,
+            color: Colors.white.withValues(alpha: 0.65), size: 20),
         tooltip: 'FAC Diagnostics',
         onPressed: _showDebugPanel,
       ),
+      const SizedBox(width: 4),
     ],
   );
 

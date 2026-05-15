@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
 import 'api_service.dart';
 import 'app_colors.dart';
@@ -427,28 +428,55 @@ class _State extends State<ApprovedApprovalsPage> {
   PreferredSizeWidget _appBar(AppColors c, AppLocalizations l) => AppBar(
     backgroundColor: AppColors.success,
     foregroundColor: Colors.white,
-    elevation: 0,
-    title: Row(children: [
-      Flexible(
-        child: Text(l.wfApprovedApprovals,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            overflow: TextOverflow.ellipsis),
+    iconTheme: const IconThemeData(color: Colors.white),
+    systemOverlayStyle: SystemUiOverlayStyle.light,
+    elevation: 3,
+    shadowColor: Colors.black.withValues(alpha: 0.25),
+    titleSpacing: 0,
+    title: Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: [
+            Text(l.wfApprovedApprovals,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  letterSpacing: 0.2,
+                ),
+                overflow: TextOverflow.ellipsis),
+            if (_total > 0) ...[
+              const SizedBox(width: 8),
+              _CountBadge(n: _total),
+            ],
+          ]),
+          Text(
+            l.wfLastNDays(_days),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.75),
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ),
-      if (_total > 0) ...[
-        const SizedBox(width: 8),
-        _CountBadge(n: _total),
-      ],
-    ]),
+    ),
     actions: [
       if (_refreshing)
-        const Padding(padding: EdgeInsets.all(14),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: SizedBox(width: 20, height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
       else
         IconButton(
           icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+          tooltip: null,
           onPressed: _manualRefresh,
         ),
+      const SizedBox(width: 4),
     ],
   );
 
