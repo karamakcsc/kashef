@@ -1,0 +1,2 @@
+include *.txt *.md *.json
+recursive-include kcsc_erp *.html *.css *.js *.py *.json *.txt *.md

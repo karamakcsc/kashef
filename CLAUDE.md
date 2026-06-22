@@ -1,4 +1,4 @@
-# CLAUDE.md — KCSC AI (KCSC ERPNext Mobile Client)
+# CLAUDE.md — Kashef (KCSC ERPNext Mobile Client)
 
 > **للذكاء الاصطناعي:** هذا الملف هو المرجع الوحيد لفهم المشروع. اقرأه كاملاً قبل أي تعديل.
 > عند إجراء تغيير جوهري، **عدّل هذا الملف فوراً** وأضف إدخالاً في قسم [سجل التغييرات](#سجل-التغييرات).
@@ -10,7 +10,7 @@
 | الحقل | القيمة |
 |-------|--------|
 | Package | `kcsc_ai` |
-| Version | `1.0.76+76` (آخر APK: 64.6 MB، آخر Web: /kcsc-ai/) |
+| Version | `1.0.0+1` (إصدار جديد — تمت إعادة التصفير 2026-06-23) |
 | Flutter SDK | `≥ 3.11.3` |
 | اللغة الافتراضية | العربية (RTL) |
 | Backend | Frappe/ERPNext — `https://erpnext-16.kcsc.com.jo` |
@@ -18,7 +18,7 @@
 | n8n | `https://n8n.kcsc.com.jo` |
 | بيئة التطوير | Windows 11 |
 
-**الوصف:** تطبيق Flutter متعدد المنصات (Android, iOS, Web, Desktop) يوفر واجهة موبايل لـ ERPNext الخاص بـ KCSC. يتيح تصفح مساحات العمل، عرض التقارير، لوحات المعلومات، والتفاعل مع مساعد ذكاء اصطناعي مبني على Claude عبر بروتوكول MCP.
+**الوصف:** تطبيق Flutter متعدد المنصات (Android, iOS, Web, Desktop) يوفر واجهة موبايل لـ ERPNext الخاص بـ KCSC. يتيح تصفح مساحات العمل، عرض التقارير، لوحات المعلومات، والتفاعل مع مساعد ذكاء اصطناعي مبني على Claude عبر بروتوكول MCP. اسم المساعد الذكي: **Kashef (كاشف)**.
 
 ---
 
@@ -40,8 +40,8 @@ lib/
 ├── module_reports_page.dart     # قائمة التقارير — المرجع لنمط فحص الصلاحيات
 ├── module_permission_page.dart  # شاشة رفض الصلاحيات
 ├── report_view_page.dart        # عرض التقارير الديناميكي مع فلاتر
-├── dashboards_page.dart         # قائمة لوحات المعلومات — search + responsive grid (2 أعمدة ≥700px) + ApiService.get()
-├── dashboard_detail_page.dart   # عرض لوحة معلومات — fl_chart + FAC-first + responsive (sidebar web / scroll mobile) + Company filter + Pending widget
+├── dashboards_page.dart         # قائمة لوحات المعلومات — search + responsive grid (2 أعمدة ≥700px) + ApiService.get() — ⚠️ مخفية من التنقل (الملف محفوظ)
+├── dashboard_detail_page.dart   # عرض لوحة معلومات — fl_chart + FAC-first + responsive (sidebar web / scroll mobile) + Company filter + Pending widget — ⚠️ مخفية من التنقل (الملف محفوظ)
 ├── accounting_dashboard.dart    # ⚠️ UI ثابت — غير مكتمل، لا تُكمل بدون تنسيق
 ├── ai_assistant_page.dart       # مساعد Claude AI عبر MCP — القلب الذكي للتطبيق؛ بطاقات الموديولات الستة مُخفاة — شاشة ترحيب فقط
 ├── chat_history_page.dart       # عرض وتحميل سجل المحادثات المحفوظة في ERPNext (Note)
@@ -55,10 +55,20 @@ lib/
 ├── document_viewer_page.dart    # عارض مستندات read-only — FAC runWorkflow → safeApplyWorkflow fallback
 ├── pending_approvals_page.dart  # قائمة الموافقات — FAC MCP HTTP مباشر + i18n كامل AR/EN + AppBar احترافي (white arrow + systemOverlayStyle + elevation) + subtitle
 ├── approved_page.dart           # المستندات المعتمدة — Workflow Action (Completed) + تجميع + Cancel عبر FAC + i18n كامل AR/EN + AppBar احترافي
-└── n8n_chat_page.dart           # دردشة بديلة عبر n8n webhook
+├── n8n_chat_page.dart           # ⚠️ صفحة ثابتة — بدون أي API calls بعد إزالة كود المراقبة؛ تعرض زر انتقال لـ n8n Chat. الكلاس N8nChatPage محفوظ للتوافق مع المسار /n8n-chat
+├── n8n_chat_service.dart        # N8nWebhookChatService — اتصال مباشر بـ n8n webhook + يقرأ URL من SharedPreferences ('n8n_chat_url' — يُضبط في Settings) + retry ×2 + timeout 15s + session ID + getWebhookUrl(). صفر dependency على ERPNext أو ApiService
+└── n8n_webhook_chat_page.dart   # Chat Page معاد بناؤها من صفر — فقاعات user/bot + RTL تلقائي + typing dots + retry on error + suggestion chips + new chat + _NotConfiguredBanner (يظهر عند غياب URL في الإعدادات → زر فتح الإعدادات). معزولة تماماً
+
+kcsc_erp/kcsc_erp/api/
+├── mobile_api.py        # KCSC Mobile API — whitelisted ERPNext endpoints
+└── n8n_proxy.py         # n8n Chat Proxy — يستقبل رسائل Flutter ويُحوّلها لـ n8n webhook server-side (يحل CORS)
+                         #   Method: kcsc_erp.api.n8n_proxy.chat
+                         #   Retry: حتى 3 محاولات عند Timeout/ConnectionError
+                         #   Logging: frappe.log_error لكل نوع خطأ
 
 images/
-└── KCSC_Logo.png        # الشعار الرسمي للتطبيق — أيقونة التطبيق + الشعار الافتراضي
+├── KCSC_Logo.png        # شعار قديم — محفوظ كمرجع
+└── faheem_logo.png      # الشعار الرسمي الحالي — أيقونة التطبيق + الشعار الافتراضي (خلفية بيضاء)
 
 test/
 └── widget_test.dart             # اختبارات MyApp و AppColors
@@ -80,6 +90,7 @@ SharedPreferences ←→ Settings Page
 Login Page → ApiService → AuthState → Navigator
 كل الصفحات → ApiService → HTTP → Frappe/ERPNext API
 AI Assistant → Claude API (مباشر) | MCP Endpoint (عبر Frappe)
+n8n Chat → HTTP مباشر → n8n webhook (يتطلب CORS headers على nginx الخاص بـ n8n.kcsc.com.jo)
 
 Pending Approvals → WorkflowRepository →
   SOURCE 0: FacMcpService → "Get Pending Approvals" tool → FAC MCP (JSON-RPC 2.0)
@@ -107,7 +118,8 @@ Document Viewer → FAC runWorkflow (إن وُجد) | safeApplyWorkflow fallback
 | `/company-selection` | 🔒 محمي | |
 | `/modules` | 🔒 محمي | ⚠️ مخفي من التنقل — المسار محفوظ |
 | `/ai-assistant` | أداة | Claude + MCP |
-| `/n8n-chat` | أداة | Webhook |
+| `/n8n-chat` | أداة | صفحة ثابتة (placeholder) — بدون API calls — تُحوّل لـ /n8n-webhook-chat |
+| `/n8n-webhook-chat` | أداة | `N8nWebhookChatPage` — واجهة دردشة مع n8n webhook |
 | `/document-viewer` | 🔒 محمي | `arguments: {'doctype': X, 'docname': Y}` → `DocumentViewerPage` |
 | `/pending-approvals` | 🔒 محمي | `PendingApprovalsPage` — Workflow Actions للمستخدم الحالي |
 | `/approved-approvals` | 🔒 محمي | `ApprovedApprovalsPage` — Workflow Action (Completed) آخر 30 يوم + Cancel عبر FAC |
@@ -190,11 +202,13 @@ if (result['message'] == null) { /* استجابة فارغة */ }
 'openai_api_key'          // ⚠️ حساس — مفتاح OpenAI لـ Whisper STT (اختياري)
 
 // ── n8n ─────────────────────────────────────────
-'n8n_chat_url'            // Webhook URL
+'n8n_chat_url'            // Webhook URL — يُقرأ من N8nWebhookChatService.getWebhookUrl() ويُستخدم في الاتصال المباشر بـ n8n
+'n8n_api_key'             // ⚠️ حساس — غير مستخدم حالياً (كان لـ REST API المحذوف)
+'n8n_session_id'          // session ID للـ chat — يُولَّد تلقائياً عند أول تشغيل ويبقى ثابتاً
 
 // ── التطبيق ─────────────────────────────────────
 'app_language'            // 'ar' | 'en'
-'custom_logo_path'        // مسار ملف الشعار المخصص (فارغ = KCSC_Logo.png الافتراضي)
+'custom_logo_path'        // مسار ملف الشعار المخصص (فارغ = faheem_logo.png الافتراضي)
 
 // ── المحادثات ────────────────────────────────────
 'active_ai_module'        // اسم الموديول النشط (HR / Accounting / ...)
@@ -530,6 +544,104 @@ _DashService.invalidate()                 // مسح كاش كامل
 
 **AppBar:** `iconTheme(white)` + `systemOverlayStyle.light` + `elevation:2` + subtitle آخر تحديث
 
+#### n8n Workflow Automation Dashboard (`n8n_chat_page.dart`)
+
+> **نوع الصفحة:** لوحة تحكم كاملة — ليست chat page بعد الآن. الكلاس `N8nChatPage` محفوظ للتوافق مع المسار `/n8n-chat`.
+
+**⚠️ الصفحة أصبحت Placeholder ثابت (2026-05-22):**
+- تم إزالة كل كود مراقبة n8n (workflows/executions/stats/API calls) بسبب CORS errors على Flutter Web
+- الصفحة الآن `StatelessWidget` بدون أي HTTP calls
+- تعرض زراً واحداً ينتقل للمستخدم إلى `/n8n-webhook-chat`
+- الكلاس `N8nChatPage` محفوظ للتوافق مع المسار `/n8n-chat` في main.dart
+
+**لا توجد SharedPreferences** — الصفحة ثابتة بالكامل.
+
+#### n8n Webhook Chat Interface (`n8n_webhook_chat_page.dart` + `n8n_chat_service.dart`)
+
+> **نوع الصفحة:** واجهة دردشة WhatsApp/ChatGPT كاملة متصلة بـ n8n webhook مباشرة. المسار: `/n8n-webhook-chat` ← `DrawerSection.n8nWebhookChat`.
+
+**`N8nWebhookChatService` — طبقة الخدمة (`n8n_chat_service.dart`):**
+```dart
+N8nWebhookChatService.getWebhookUrl()          // يقرأ 'n8n_chat_url' من SharedPreferences
+N8nWebhookChatService.instance.sendMessage({message, sessionId, language})
+                                               // يقرأ URL تلقائياً → HTTP POST مباشر + retry ×2
+N8nWebhookChatService.loadOrCreateSession()    // جلب/إنشاء session ID ('n8n_session_id')
+N8nWebhookChatService.resetSession()           // توليد session ID جديد (New Chat)
+```
+
+**⚠️ سلوك عند غياب الـ URL:**
+- `sendMessage()` يرمي `Exception('n8n_not_configured')` فوراً
+- الـ chat page تتحقق عند الفتح → تعرض `_NotConfiguredBanner` مع زر "فتح الإعدادات"
+
+**معمارية الاتصال (بعد 2026-05-22):**
+```
+Flutter Web/Mobile
+    ↓  http.post مباشر (يحتاج CORS headers على n8n nginx)
+POST https://n8n.kcsc.com.jo/webhook/.../chat
+    ↓  n8n يُعالج الطلب ويتصل بـ ERPNext من جانبه
+Response: {"output": "bot reply"}
+```
+
+**⚠️ شرط CORS:** يجب إضافة هذا في nginx الخاص بـ n8n.kcsc.com.jo:
+```nginx
+location /webhook/ {
+    if ($request_method = 'OPTIONS') {
+        add_header Access-Control-Allow-Origin  'https://poc.kcsc.com.jo';
+        add_header Access-Control-Allow-Methods 'POST, OPTIONS';
+        add_header Access-Control-Allow-Headers 'Content-Type, Accept';
+        add_header Content-Length 0;
+        return 204;
+    }
+    add_header Access-Control-Allow-Origin  'https://poc.kcsc.com.jo' always;
+    add_header Access-Control-Allow-Methods 'POST, OPTIONS'           always;
+    add_header Access-Control-Allow-Headers 'Content-Type, Accept'    always;
+    proxy_pass http://127.0.0.1:5678;
+}
+```
+
+**Request/Response:**
+```json
+// طلب (JSON مباشر)
+{"message": "...", "session_id": "kcsc_..._xxx", "language": "ar | en"}
+// رد من n8n
+{"output": "bot reply"}
+```
+
+**مكوّنات الصفحة:**
+| Widget | الوصف |
+|--------|-------|
+| `_MessageBubble` | فقاعة الرسالة — يمين للمستخدم (`c.userBubble`)، يسار للبوت (`c.surface`) + `_detectDir()` للـ RTL |
+| `_TypingBubble` | فقاعة "n8n يفكر…" مع `_TypingDots` pulsing (scale + opacity) |
+| `_TypingDots` | ثلاث نقاط متحركة بـ `AnimationController` — phase offset 0.22 لكل نقطة |
+| `_SendBtn` | دائرة متحركة — spinner أثناء التحميل، `Icons.send_rounded` في الوضع العادي |
+| `_EmptyState` | avatar + عنوان + 3 `_SuggestionChip` جاهزة للضغط |
+| `_SuggestionChip` | chip بحدود `c.primary` + أيقونة bolt تُرسل الرسالة مباشرة |
+
+**الأنيميشن:**
+- `TweenAnimationBuilder<double>` per new message: fade-in + slide من جهة المُرسِل (±28px)، مدة 380ms
+- مفتاح `ValueKey('anim_${msg.id}')` يمنع إعادة التشغيل عند `setState`
+- بعد 650ms يُزال الـ ID من `_animatingIds` → widget يصبح ثابت بدون أثر بصري
+
+**الميزات:**
+- **RTL تلقائي** — `_detectDir()` تفحص أول code-point: نطاق عربي/عبري → `TextDirection.rtl`
+- **Long-press copy** — `Clipboard.setData` + SnackBar على كل فقاعة
+- **Session** — `Random.secure()` + timestamp → `kcsc_{ms}_{12chars}` محفوظ في `n8n_webhook_session_id`
+- **Retry** — حتى 2 محاولات مع backoff 1s/2s قبل عرض رسالة الخطأ
+- **New Chat** — Dialog تأكيد → `resetSession()` → مسح القائمة
+- **Suggestion chips** — 3 اقتراحات جاهزة تُرسل فوراً عند الضغط (i18n: `n8nSuggestion1/2/3`)
+
+**مفاتيح i18n المُضافة (12 مفتاح):**
+`n8nChatTitle` / `n8nChatSubtitle` / `n8nThinking` / `n8nChatError` / `n8nChatErrorBadge` / `n8nChatPlaceholder` / `n8nChatEmpty` / `n8nNewChat` / `n8nNewChatConfirm` / `n8nSuggestion1` / `n8nSuggestion2` / `n8nSuggestion3`
+
+**SharedPreferences المُستخدمة:**
+- `n8n_webhook_session_id` — session ID (يُحفظ عند أول تشغيل، يُجدَّد عند New Chat)
+
+**Drawer:**
+- `DrawerSection.n8nWebhookChat` جديد في enum
+- `_NavItem(icon: support_agent_rounded, label: l.n8nChatTitle)` تحت n8n Dashboard
+
+**ملاحظة:** الصفحة تتصل بـ n8n **مباشرةً** عبر `http.post` — صفر dependency على `ApiService` أو ERPNext. n8n نفسه يتولى الاتصال بـ ERPNext من جانب السيرفر. يتطلب CORS headers على nginx الخاص بـ n8n.kcsc.com.jo.
+
 ---
 
 ## 8. نظام الألوان والتصميم
@@ -570,6 +682,7 @@ AppColors.error    // Color(0xFFEF4444) — red-500
 
 ### 8.2 إرشادات التصميم
 - **Material Design 3** — `useMaterial3: true`
+- **الخط الافتراضي** — `fontFamily: 'Cairo'` مُضبوط في `app_theme.dart` لكلا الثيمَين (يحل "Could not find a set of Noto fonts" على Flutter Web)
 - **RTL/LTR** — تلقائي بناءً على `app_language`
 - **SafeArea** — مُطبَّقة على `body:` في جميع الصفحات (15 صفحة) — **لا تحذفها**
 - **شبكة الوحدات** — `GridView.count` بعمودين
@@ -592,6 +705,7 @@ AppColors.error    // Color(0xFFEF4444) — red-500
 - **230+ نص** — تبديل فوري، يُحفظ في SharedPreferences
 - **`report_view_page.dart`** + **`pending_approvals_page.dart`** + **`approved_page.dart`** + **`dashboard_detail_page.dart`** — جميع نصوص الواجهة عبر `AppLocalizations` (لا نصوص مُضمَّنة)
 - **مفاتيح i18n جديدة (2026-05-15):** `wfSearchHint`/`wfFallbackMode`/`wfFallbackDetails`/`wfLocalizeAction()`/`wfLastNDays(n)`/`wfExecutingMsg`/`wfActionDoneMsg`/`wfActionCancelledMsg`/`dashSearchHint`/`dashCompany`/`dashViewAll`/`dashNoPermission`
+- **مفاتيح i18n جديدة (2026-05-16):** `appLogoSection`/`removeLogo`/`logoUpdated`/`noImageContent`/`exportTooltip`/`importTooltip`/`backupSubject`/`noFileContent`/`notSettingsFile`/`notKcscSettings`/`exportFailed(e)`/`importSuccess(n)`/`importFailed(e)`/`providerClaudeOnly`/`providerChatGptOnly`/`providerClaudeFirst`/`providerChatGptFirst`/`providerDesc*()`/`chatGptInfo`/`apiTokenOptional`
 
 ```dart
 // الاستخدام الصحيح
@@ -921,9 +1035,22 @@ Container(color: Color(0xFFXXXXXX))
 | 2026-05-11 | **تحسين workflow في `ai_assistant_page.dart` — production-ready**: **(1) `_lastOpenedDoctype`** — إعادة إضافة الحقل واستخدامه: يُضبط في `_openDocument()` ويُستخدم في `_onWorkflowEvent()` للمطابقة الدقيقة (doctype + docname معاً بدل docname فقط) — يمنع false positives من مستندات بنفس الاسم في doctypes مختلفة؛ **(2) `_openDocument()` → async**: تحويلها لـ `Future<void>` + `await Navigator.pushNamed` → عند عودة المستخدم من الـ viewer بدون إجراء، تُمسح التتبع تلقائياً (`_lastOpenedDocname = null`)؛ **(3) `_onWorkflowEvent()` — docstatus-aware messages**: بدلاً من رسالة واحدة، ثلاث رسائل حسب النتيجة: `docstatus=2` → "🚫 تم الإلغاء"، `docstatus=1` → "✅ تم التقديم/الاعتماد"، `docstatus=0` → رسالة التأكيد المعتادة (`wfChatConfirmation`)؛ تحقق من doctype مطابقة؛ debug logging `[AI-WF]`؛ **(4) System prompt RULE 5** — إعادة كتابة شاملة: 4 خطوات إلزامية (DISCOVER→VALIDATE→EXECUTE→CONFIRM)، قواعد cancellation، DUPLICATE ACTION PREVENTION، ERROR HANDLING، تحذيرات صريحة لكل حالة (docstatus=2 موجود مسبقاً، docstatus=0 لا يُلغى مباشرة، اسم أداة حساس لحالة الأحرف، NEVER frappe.client.cancel)؛ APK (64.4 MB) + Web ✅ | الهدف: workflow في المساعد الذكي production-ready مع منع التكرار، التحقق من الحالة الفعلية، ورسائل احترافية لكل نتيجة |
 | 2026-05-11 | **إصلاح `_executeAction()` في `pending_approvals_page.dart` — cancel/reject ذكي + broadcast docstatus=2**: **(1) `_isCancelAction(String action)`** — helper جديد يكتشف أسماء الإجراءات من نوع cancel/reject/deny/refuse/إلغاء/رفض/reverse؛ **(2) CASE 1 (run_workflow نجح)**: إضافة `[Pending Cancel] Using run_workflow: true` log؛ **(3) Fallback (!done) — cancel-aware logic**: إذا `isCancelLike`: (a) جلب الـ doc الكامل + docstatus، (b) `WorkflowService().getTransitions()` لاكتشاف cancel transitions، (c) إذا وُجد cancel transition → `safeApplyWorkflow`، (d) إذا لم يوجد + `docstatus==1` → direct ERPNext cancel (`has_permission?ptype=cancel` ثم `postForm(frappe.client.cancel, {doctype, name})` بالبارامترات الصحيحة)، (e) إذا لم يوجد + `docstatus==0` → `safeApplyWorkflow` fallback؛ إذا `!isCancelLike`: `safeApplyWorkflow` مباشرة؛ **(4) docstatus=2 branch**: إضافة `RealtimeWorkflowService().broadcastLocal({..., docstatus: 2})` — كان مفقوداً فكانت Approved page لا تُحدَّث عند cancel من Pending؛ **(5) debug logging شامل**: `[Pending Cancel]` prefix في كل خطوة بما فيها Docstatus Before/After، Workflow State After، Available transitions، Has Cancel Permission، API Response؛ APK (64.4 MB) + Web ✅ | المشاكل المُصلحة: (1) لا `broadcastLocal` لـ docstatus=2 → Approved لا تتحدث عند cancel من Pending؛ (2) CASE 2 (direct cancel) لم يكن موجوداً للمستندات المُقدَّمة التي تظهر في Pending بدون workflow cancel transition |
 | 2026-05-11 | **إصلاح `_cancelDoc()` في `approved_page.dart` — منطق إلغاء ذكي حسب الـ Workflow**: إعادة كتابة `_cancelDoc()` كاملاً بمنطق ثنائي: **(CASE 1) إذا كان للمستند workflow transition من نوع Cancel/Reject/Deny/Refuse/إلغاء/رفض** → `FacMcpService().runWorkflow(doc, action)` أولاً → fallback `WorkflowService().safeApplyWorkflow()`؛ **(CASE 2) إذا لم يوجد transition من هذا النوع** → (a) Safety check: `docstatus == 1` (فقط المُقدَّمة تُلغى)، (b) Permission check: `frappe.client.has_permission?ptype=cancel`، (c) تنفيذ `ApiService.postForm('/api/method/frappe.client.cancel', {'doctype': dt, 'name': dn})` — البارامترات الصحيحة (وليس `{'doc': jsonEncode(docMap)}` الخاطئ)؛ إضافة `import 'workflow_service.dart'` + debug logging شامل لكل خطوة؛ APK (64.4 MB) + Web ✅ | **الأخطاء الجذرية المُصلحة**: (1) `cancel_document` FAC tool غير موجودة على هذا الخادم — حُذفت كلياً؛ (2) `frappe.client.cancel` كانت تُستدعى بـ `{'doc': jsonEncode(full_doc)}` بدلاً من `{'doctype': dt, 'name': dn}` — سبّبت 500 INTERNAL SERVER ERROR؛ القاعدة: **لا استخدام لـ `cancel_document` FAC** في أي مكان |
+| 2026-05-16 | **i18n بطاقة الترحيب + SnackBars في `ai_assistant_page.dart`**: **(1) `app_localizations.dart`** — إضافة 14 مفتاح/دالة: `greetingMorning`/`greetingAfternoon`/`greetingEvening`/`greeting()`/`agentName`/`assistantIntro`/`assistantModulesTitle`/`assistantModules`/`assistantHelpQuestion`/`micPermissionDenied`/`micError(e)`/`whisperError(e)`/`voiceGenericError(e)`/`emailSendFailed(e)`؛ **(2) `ai_assistant_page.dart`** — `_buildWelcomeMessage()` مُعاد كتابتها لاستخدام 5 مفاتيح l10n بدلاً من 12 نص مشفر؛ `_buildWelcomeBubble()` يستخدم `l.agentName` بدلاً من نص ثنائي مشفر؛ dialog buttons (`إلغاء`/`حفظ`) → `l10n.cancel`/`l10n.save`؛ 4 SnackBars للميكروفون/Whisper/البريد → مفاتيح l10n؛ `flutter analyze` → 0 issues | refactoring: صفر نصوص مشفرة في منطقة الترحيب والأخطاء الصوتية |
+| 2026-05-16 | **i18n شامل لـ `settings_page.dart` + بنية `lib/core/localization/`**: **(1) `app_localizations.dart`** — إضافة 19 مفتاح/دالة: `appLogoSection`/`removeLogo`/`logoUpdated`/`noImageContent`/`exportTooltip`/`importTooltip`/`backupSubject`/`noFileContent`/`notSettingsFile`/`notKcscSettings`/`exportFailed(e)`/`importSuccess(n)`/`importFailed(e)`/`providerClaudeOnly`/.../`providerDesc(p)`/`chatGptInfo`/`apiTokenOptional`؛ **(2) `settings_page.dart`** — استبدال جميع النصوص المشفرة بـ `l.xxx` — شامل: AppBar tooltips، section headers، validators، provider labels، info texts، SnackBars، dialogs؛ `final l = AppLocalizations.of(context)` في `build()` وكل method؛ حل `use_build_context_synchronously` بالتقاط `l` قبل الـ awaits؛ **(3) `lib/core/localization/`** — ملفا re-export: `app_localizations.dart` + `locale_provider.dart`؛ `flutter analyze` → 0 issues | تطبيق قاعدة §3: صفر نصوص مُضمَّنة في settings_page + بنية مجلدات مرجعية |
+| 2026-05-16 | `app_drawer.dart` — **إخفاء رابط لوحات المعلومات (Dashboards) من القائمة الجانبية**: تحويل `_NavItem` الخاص بـ Dashboards إلى تعليق مع رسالة `// re-enable by un-commenting`؛ الإبقاء على: import، enum value، حالة `_go(DrawerSection.dashboards)` كاملة — يمكن إعادة التفعيل بسطر واحد؛ `flutter analyze` → 0 issues؛ APK + Web ✅ | طلب المستخدم: إخفاء الداشبورد مؤقتاً مع الحفاظ على الملفات والمسارات |
+| 2026-05-16 | **إصلاح تحذيرات المحلل في `dashboard_detail_page.dart` + بناء APK/Web**: (1) 2 تعليقات doc comment تحتوي على `<` عالجها المحلل كـ HTML — استبدلت بـ `[Map<String,dynamic>]` و`[List<dynamic>]`؛ (2) `use_build_context_synchronously` عند line 624 — استُخرجت السلسلة النصية قبل `await` في متغير محلي `errMsg` بدلاً من الاستدعاء المباشر لـ `AppLocalizations.of(context)` داخل `throw`؛ (3) `unused_local_variable` عند line 1265 — حُذفت `final c = widget.c;` من `_BarChartCardState.build()` إذ لم تُستخدم `c` في الـ bar chart (يستخدم `_pal()` المستقلة)؛ (4) `curly_braces_in_flow_control_structures` في سطرَين — أُضيفت `{ }` حول `return SizedBox.shrink()` في `getTitlesWidget` الـ bar وline chart؛ `flutter analyze lib/dashboard_detail_page.dart` → **0 issues**؛ APK (64.7 MB) ✅ + Web ✅ | تنظيف الديون التقنية وإزالة جميع تحذيرات المحلل |
+| 2026-05-21 | **واجهة دردشة n8n webhook كاملة — ملفَين جديدَين + تحديثات عدة**: **(1) `lib/n8n_chat_service.dart`** (جديد) — `N8nWebhookChatService`: `sendMessage({message, sessionId, language})` يُرسل JSON-POST لـ `https://n8n.kcsc.com.jo/webhook/.../chat` مع retry ×2 + exponential backoff (1s/2s)؛ `_parse()` يدعم 5 أشكال للرد (`output|text|message|response|answer`)؛ `loadOrCreateSession()` / `resetSession()` عبر `Random.secure()` → `kcsc_{ms}_{12chars}` في `n8n_webhook_session_id`؛ **(2) `lib/n8n_webhook_chat_page.dart`** (جديد) — واجهة WhatsApp/ChatGPT: فقاعات يمين (user=`c.userBubble`) + يسار (bot=`c.surface`+border)؛ `TweenAnimationBuilder<double>` per message (fade-in + slide ±28px، 380ms، `ValueKey` يمنع إعادة التشغيل)؛ `_TypingBubble` + `_TypingDots` (3 نقاط، phase offset 0.22، scale+opacity)؛ `_EmptyState` مع 3 `_SuggestionChip` suggestion chips جاهزة؛ `_detectDir()` RTL تلقائي؛ Long-press copy؛ New Chat مع dialog تأكيد؛ **(3) `app_localizations.dart`** — 12 مفتاح جديد: `n8nChatTitle`..`n8nSuggestion3`؛ **(4) `app_drawer.dart`** — `DrawerSection.n8nWebhookChat` جديد + `_NavItem(support_agent_rounded)` + case في switch؛ **(5) `main.dart`** — import + route `/n8n-webhook-chat`؛ `flutter analyze` → **0 issues**؛ APK (65.1 MB) ✅ + Web ✅ | تطبيق الطلب: واجهة دردشة مستقلة تتصل بـ n8n webhook مع أنيميشن كامل وRTL وsession management |
+| 2026-05-22 | **n8n Webhook URL من الإعدادات + شاشة إعداد**: **(1) `lib/n8n_chat_service.dart`** — إضافة `getWebhookUrl()` static يقرأ `n8n_chat_url` من SharedPreferences؛ `sendMessage()` يقرأ الـ URL تلقائياً قبل كل إرسال ويرمي `Exception('n8n_not_configured')` إذا كان فارغاً — لا URL مشفَّر في الكود؛ **(2) `lib/n8n_webhook_chat_page.dart`** — `_initSession()` تتحقق من الـ URL عند فتح الصفحة وتضبط `_urlConfigured`؛ إضافة `_NotConfiguredBanner` widget يظهر عند غياب الـ URL: أيقونة warning + رسالة AR/EN + زر "فتح الإعدادات" ينتقل لـ `/settings`؛ `flutter analyze` → **0 issues**؛ APK (64.8 MB) ✅ + Web ✅ | الـ URL الآن يُقرأ من Settings — لا hardcoded URLs في الكود |
+| 2026-05-22 | **إعادة بناء n8n Chat Module — اتصال مباشر + Chat Page من صفر**: **(1) `lib/n8n_chat_service.dart`** — إعادة كتابة كاملة: اتصال مباشر `http.post` لـ n8n webhook بدون أي dependency على `ApiService` أو ERPNext — `N8nWebhookChatService` singleton (`const instance`) يستقبل `message/session_id/language`، retry ×2 مع backoff (2s/4s)، timeout 15s، parser يدعم 5 أشكال رد؛ `loadOrCreateSession()` / `resetSession()` — session ID في `n8n_session_id` بـ SharedPreferences مستقل عن بقية الـ app؛ صفر dependency على `ApiService`؛ **(2) `lib/n8n_webhook_chat_page.dart`** — إعادة بناء كاملة من صفر: `_Message` model (user/bot/isError)، فقاعات user (يمين، `c.userBubble`) + bot (يسار، `c.surface`+border)، RTL تلقائي بفحص أول code-point، `_TypingIndicator` مع `_AnimatedDots` (3 نقاط، phase offset 0.33، AnimationController 1.2s)، `_InputBar` مع multi-line TextField + CircleBorder send button، `_EmptyState` مع 3 suggestion chips، retry button على error messages، long-press copy، new chat مع dialog تأكيد، auto-scroll `animateTo(maxScrollExtent, 300ms)`؛ `flutter analyze` → **0 issues**؛ APK (64.8 MB) ✅ + Web ✅ | n8n Chat معزول تماماً: لا ERPNext، لا ApiService، لا shared state — Flutter يتصل مباشرة بـ n8n بعد تفعيل CORS headers على nginx الخاص بـ n8n.kcsc.com.jo |
+| 2026-05-22 | **إصلاح CORS + معمارية proxy لـ n8n Chat**: **(1) `lib/n8n_chat_page.dart`** — إعادة كتابة كاملة من 1985 سطر → 105 سطر: حُذف كل كود مراقبة n8n (`_N8nApi`/`_Workflow`/`_Execution`/`_Stats`/`_StatsGrid`/`_WorkflowCard`/`_ExecutionPanel`/`_SetupBanner`/polling timers) — السبب الجذري لـ CORS errors؛ الصفحة الآن `StatelessWidget` ثابتة بدون أي HTTP calls تعرض زر انتقال لـ `/n8n-webhook-chat`؛ **(2) `lib/n8n_chat_service.dart`** — استبدال `http.post` المباشر لـ `https://n8n.kcsc.com.jo/webhook/.../chat` بـ `ApiService.postForm('/api/method/kcsc_erp.api.n8n_proxy.chat')` — الاتصال الآن عبر ERPNext كـ proxy فيختفي CORS تلقائياً؛ **(3) `kcsc_erp/kcsc_erp/api/n8n_proxy.py`** (ملف جديد) — method مُسجَّل بـ `@frappe.whitelist()` يستقبل `message/session_id/language` ويُحوّلها لـ n8n server-side مع: retry ×3 عند Timeout/ConnectionError، حماية من 4xx، `frappe.log_error` لكل نوع خطأ، parser يدعم 5 أشكال رد من n8n؛ **(4) `lib/app_theme.dart`** — إضافة `fontFamily: 'Cairo'` لكلا ثيمَي light وdark → يحل "Could not find a set of Noto fonts" على Flutter Web؛ `flutter analyze` → **0 issues**؛ APK (64.8 MB) ✅ + Web ✅ | CORS errors مُزالة بالكامل: Flutter → ERPNext (same-origin) → n8n (server-side) |
+| 2026-05-21 | **إعادة بناء شاملة لـ `n8n_chat_page.dart` — Workflow Automation Dashboard**: تحويل الصفحة من chat page بسيطة إلى لوحة تحكم n8n كاملة تستهلك n8n REST API v1؛ **(1) `_N8nApi` service class**: `GET /api/v1/workflows`، `GET /api/v1/executions`، `POST /api/v1/workflows/{id}/execute`، activate/deactivate؛ مصادقة بـ `X-N8N-API-KEY` header؛ **(2) `_SetupBanner`**: يظهر عند غياب `n8n_api_key` — إدخال المفتاح inline مع visibility toggle، يُحفظ في `SharedPreferences('n8n_api_key')`، base URL يُستخرج تلقائياً من `n8n_chat_url`؛ **(3) `_StatsGrid`**: 4 بطاقات إحصائية (Total/Active/Failed/Running) — skeleton loading، 4 أعمدة ≥380px أو 2×2 ؛ **(4) `_WorkflowCard`**: اسم + active toggle (يُفعّل/يوقف workflow) + last execution badge + success rate bar مُلوَّن (green/yellow/red) + 3 أزرار (Open in browser / Execute / View logs)؛ **(5) `_ExecutionPanel`**: سجل التنفيذات — sidebar دائم على ≥768px، `DraggableScrollableSheet` على موبايل؛ **(6) Responsive layout**: `< 768px` قائمة عمودية + bottom sheet، `≥ 768px` → `Row` (flex:5 + SizedBox(340))؛ **(7) `_SkeletonCard`** pulsing animation؛ **(8) `_EmptyView` / `_ErrorView`** مع retry؛ **(9) بحث inline في AppBar** + `RotationTransition` على زر Refresh؛ الكلاس `N8nChatPage` محفوظ للتوافق مع مسار `/n8n-chat`؛ `flutter analyze lib/n8n_chat_page.dart` → **0 issues**؛ APK (64.9 MB) ✅ + Web ✅ | تحويل صفحة n8n من chat بسيط إلى لوحة تحكم production-grade لإدارة ومراقبة n8n workflows |
+| 2026-05-15 | **إعادة بناء شاملة وتصحيح جذري لـ `dashboard_detail_page.dart`** — تشخيص وإصلاح 7 أسباب جذرية لخلل البيانات: **(1)** `_httpGet()` كانت تبتلع جميع الاستثناءات بـ `catch(_){}` صامتاً → الرسوم فارغة دائماً؛ **(2)** بناء URL كامل → تحليله لاستخراج المسار → تمريره لـ `ApiService.get()` (تشفير مزدوج + مسارات خاطئة)؛ **(3)** لا `_busy` flag → تحميلات متزامنة تكتب فوق بعضها؛ **(4)** لا `_loadToken` → نتائج قديمة تلوّث الـ state الحالي؛ **(5)** مفتاح الكاش لا يشمل `extraFilters` → cache hits خاطئة لفلاتر مختلفة؛ **(6)** حقل `exc` لا يُفحص لكل chart على حدة → أخطاء الصلاحيات صامتة؛ **(7)** Timer لا يفحص `_busy` → يُطلق تحميلاً أثناء تحميل آخر نشط؛ **البنية الجديدة**: `_DashService.fetchChartData()` يبني query string مباشرة `ApiService.get('/api/method/.../get?chart_name=...')` — لا مساعد وسيط؛ `_deepParseChart()` parser عميق يتعامل مع جميع أشكال استجابة FAC/MCP؛ `_busy` + `_loadToken` + `alive()` لحماية الـ state؛ per-chart `_chartLoading`/`_chartErrors`؛ `_SkeletonLoader`/`_ChartError`/`_NoData` widgets منفصلة؛ logging هيكلي `[DASHBOARD][FAC/PARSER/STATE/PERMISSION/DASH_REFRESH]` | الرسوم كانت فارغة دائماً — الأسباب الجذرية موثقة ومُصلحة بالكامل |
 | 2026-05-15 | **إعادة بناء صفحتَي Dashboard من الصفر — Enterprise-grade**: **(1) `dashboards_page.dart`** — استبدال `http` بـ `ApiService.get()` (static)؛ إضافة search bar مع clear button؛ Responsive grid (عمودان ≥700px، قائمة على موبايل)؛ `Material + InkWell` بدل `ListTile`؛ حذف `http` import كلياً؛ **(2) `dashboard_detail_page.dart`** (إعادة كتابة كاملة ~1650 سطر): طبقة `_DashService` — FAC أولاً (FacMcpService) ثم ERPNext API fallback تلقائياً + كاش 5 دقائق في الذاكرة؛ `fl_chart` لجميع الرسوم (Bar/Line/Pie/Donut) تحل محل Custom Painters — أنيمشن + tooltip + تفاعل؛ `_KpiCard` للقيم الفردية (Count/Sum/Average)؛ `_PendingWidget` يعرض عدد الموافقات المعلقة (FAC → ERPNext fallback) مع رابط لـ `/pending-approvals`؛ Responsive layout: < 768px → mobile vertical scroll + bottom sheet filters، ≥ 768px → sidebar فلاتر قابل للطي + grid (2 أو 3 أعمدة حسب الاتساع)؛ Company filter dropdown محمّل من ERPNext؛ `_DataTableCard` مع expand/collapse؛ per-chart filters sheet محفوظة؛ `iconTheme + systemOverlayStyle + elevation` في AppBar؛ **(3) `app_localizations.dart`** — إضافة 4 مفاتيح: `dashSearchHint`/`dashCompany`/`dashViewAll`/`dashNoPermission` | إعادة بناء كاملة: الصفحة كانت تستخدم `http` مباشرة بدون FAC وبدون fl_chart — الجديدة enterprise-grade مع responsive + FAC + fl_chart |
 | 2026-05-15 | **تحسين AppBar احترافي في `pending_approvals_page.dart` و `approved_page.dart`**: **(1) إصلاح جذري لسهم الرجوع**: `iconTheme: const IconThemeData(color: Colors.white)` يتجاوز `appBarTheme.iconTheme(color: textSecondary)` الغامق المُعرَّف عالمياً في `app_theme.dart` — السهم أبيض في كلا الوضعَين Light وDark لأن خلفية AppBar ملوّنة دائماً؛ **(2) `systemOverlayStyle: SystemUiOverlayStyle.light`** + `import 'package:flutter/services.dart' show SystemUiOverlayStyle` — أيقونات شريط الحالة (وقت/بطارية/إشارة) تصبح بيضاء فوق AppBar الملوّن؛ **(3) `elevation: 3` + `shadowColor`** — ظل خفيف يعطي عمقاً بصرياً ويفصل AppBar عن المحتوى؛ **(4) Title Column ثنائي السطر**: عنوان رئيسي (fontSize:17/w700/letterSpacing:0.2) + subtitle أبيض شفاف 75% يعرض في Pending "X بند في الانتظار" / "X pending" وفي Approved "آخر N يوم" / "Last N days"؛ **(5) `titleSpacing: 0` + padding 4px + `SizedBox(4)` trailing** — توازن بصري RTL/LTR | سهم الرجوع كان يظهر داكناً بسبب `iconTheme` العالمي في `app_theme.dart` الذي يتجاوز `foregroundColor` المحلي |
 | 2026-05-15 | **i18n شامل لـ `pending_approvals_page.dart` و `approved_page.dart`**: `app_localizations.dart` — إضافة 3 مفاتيح ثابتة (`wfSearchHint`/`wfFallbackMode`/`wfFallbackDetails`) + 5 دوال معاملة (`wfLocalizeAction` بخريطة 28 إجراء: Approve→موافقة، Reject→رفض، Submit→تقديم، Cancel→إلغاء...؛ `wfLastNDays(n)`؛ `wfExecutingMsg`؛ `wfActionDoneMsg`؛ `wfActionCancelledMsg`)؛ `pending_approvals_page.dart` — 9 تغييرات: عنوان dialog، زر تأكيد، 3 SnackBars، hint البحث، لافتة Fallback، زر Details، `_ActBtn.build()` يستدعي `wfLocalizeAction(label)`، `_RefreshBtn` يستخدم `l.wfRefreshApprovals`؛ `approved_page.dart` — 2 تغييرات: hint البحث + نص "آخر N يوم/Last N days"؛ لوحة FAC Diagnostics (developer tool) تبقى بالإنجليزي | كل عناصر الصفحتَين تعرض بالعربية عند اختيار AR وبالإنجليزية عند اختيار EN — صفر نصوص مُضمَّنة في الـ widgets |
 | 2026-05-15 | `ai_assistant_page.dart` — **إخفاء بطاقات الموديولات الستة من شاشة الترحيب**: حذف `_ModuleInfo` class + `_ModuleCard` class + `_EmptyState._modules` list (Purchasing/Accounting/Human Resources/Inventory/Manufacturing/Sales)؛ إزالة قسم "ابدأ بموديول" + GridView + Divider من `_EmptyState.build()` — شاشة الترحيب تعرض رسالة الترحيب فقط؛ `_InlineModuleGrid.build()` → `SizedBox.shrink()` بدون أي عناصر أسفل رسالة الترحيب؛ صفر تغيير في system prompt أو منطق module detection أو أي جزء آخر من الصفحة | طلب المستخدم: إخفاء الموديولات من الـ UI فقط مع الحفاظ على كامل المنطق |
 | 2026-05-12 | `ai_assistant_page.dart` — **إصلاح OCR بدون تعديل السيرفر — Native Vision للصور**: تشخيص جذري لخطأ PaddleOCR: `extract_file_content` FAC tool تُشغّل الـ subprocess بـ `sys.executable` (Frappe Python 3.14) الذي يملك `paddleocr 3.5.0` بلا `paddlepaddle`؛ بينما البيئة الصحيحة `/opt/ocr-service/venv` (Python 3.10 + paddlepaddle 3.0.0) لا تُستدعى أبداً؛ **الحل داخل التطبيق (بدون أي تعديل على السيرفر):** تحديث 3 أقسام في system prompt: (1) RULE 0.5 — استبدال "use extract-file-content-usage for images" بـ "PRIMARY: use native vision on base64 directly"; (2) FAC ROUTING ENGINE ④ — الصور → native vision، PDF/Excel/DOCX → extract-file-content-usage كما هو؛ (3) `_facRoutingHint()` — تغيير hint الصور من "extract-file-content-usage for deep OCR" إلى "use YOUR NATIVE VISION (no FAC OCR needed)"؛ المبرر: Claude يستقبل الصورة كـ base64 في نفس الرسالة — لديه رؤية بصرية كاملة بدون أي أداة خارجية، أسرع وأدق للفواتير العربية؛ APK (64.6 MB) + Web ✅ | خطأ "Engine paddle_static unavailable" عند OCR أي صورة — الحل: Claude يقرأ الصورة بنفسه مباشرة |
+| 2026-06-23 | **تصفير الإصدار**: `pubspec.yaml` — `version: 1.0.78+78` → `version: 1.0.0+1`؛ `build.gradle.kts` يقرأ الإصدار تلقائياً من pubspec | إعادة البداية بإصدار جديد بعد إعادة التسمية |
+| 2026-06-23 | **إعادة تسمية التطبيق إلى "Kashef (كاشف)"**: تغيير "Faheem"/"فهيم" → "Kashef"/"كاشف" في: `app_localizations.dart` (6 مفاتيح)، `main.dart`، `ai_assistant_page.dart`، `background_service.dart`، `realtime_workflow_service.dart`، `AndroidManifest.xml`، `web/manifest.json`، `web/index.html` | طلب المستخدم |
+| 2026-06-10 | **إعادة تسمية التطبيق إلى "Faheem (فهيم)" + تغيير الشعار**: **(1) اسم التطبيق** — تغيير "KCSC AI" → "Faheem" / "فهيم" في: `app_localizations.dart` (`appTitle`/`welcome`/`backupSubject`/`notKcscSettings`/`agentName`/`assistantIntro`)، `main.dart` (title)، `background_service.dart` (عنوان الإشعار)، `realtime_workflow_service.dart` (عنوان SnackBar/إشعار)، `ai_assistant_page.dart` (`agentName` + `agentDescAr/En` + empty state)، `web/manifest.json` (name/short_name/description)، `web/index.html` (title + apple-mobile-web-app-title)، `AndroidManifest.xml` (android:label)؛ **(2) الشعار** — تغيير من `images/KCSC_Logo.png` إلى `images/faheem_logo.png` في: `pubspec.yaml` (flutter_launcher_icons — خلفية `#FFFFFF` بدل `#0F172A`)، `settings_page.dart` (`buildLogoWidget()` fallback)؛ توليد أيقونات Android تلقائياً عبر `dart run flutter_launcher_icons`؛ توليد أيقونات Web (favicon 32px + PWA 192/512 + maskable) عبر PowerShell System.Drawing؛ **(3) Web URL** — تغيير base-href من `/kcsc-ai/` إلى `/faheem/`؛ `flutter build web --release --base-href /faheem/` عبر PowerShell (Git Bash يُحوّل المسار خطأً) | طلب المستخدم: إعادة تسمية التطبيق والمساعد الذكي باسم "فهيم" مع هوية بصرية جديدة |
 | 2026-05-09 | **نظام Workflow الديناميكي — إعادة بناء شاملة (9 خطوات)**: (1) **`lib/workflow_models.dart`** (جديد) — `PendingDoc` + `WorkflowSource` enum (workflowAction/dynamicScan)؛ (2) **`lib/fac_validator.dart`** (جديد) — FAC Permission layer: `hasReadPermission` (frappe.client.has_permission) + `getValidatedTransitions` + `validateBeforeApply` (pre-execution FAC gate) + `canAccessDocType`؛ (3) **`lib/workflow_repository.dart`** (جديد) — طبقة البيانات المركزية تجمع SOURCE A (Workflow Action records) + SOURCE B (Dynamic scan لكل DocType نشط عليه workflow بـ limit=30 + get_transitions للتحقق) — كاش 30s/60s — dedup بـ doctype::docname — SOURCE A أولوية؛ (4) **`lib/workflow_service.dart`** — إضافة `safeApplyWorkflow()` يستدعي `FacValidator.validateBeforeApply()` قبل `applyWorkflow()` — يمنع 417 EXPECTATION FAILED؛ (5) **`lib/pending_approvals_page.dart`** — إعادة بناء كاملة: يستخدم `WorkflowRepository` بدل API مباشر، source badge للعناصر من Dynamic Scan، `_DynamicScanBanner` عند وجود عناصر مكتشفة، invalidate + refresh بعد كل workflow action؛ (6) **`lib/realtime_workflow_service.dart`** — `_loadPendingCount` يستخدم `WorkflowRepository.fetchCount()` (SOURCE A+B) + fallback للـ API المباشر، `broadcastLocal` يستدعي `WorkflowRepository().invalidate()`؛ (7) **`lib/document_viewer_page.dart`** — استبدال `applyWorkflow` بـ `safeApplyWorkflow` لكل أزرار الـ transitions؛ (8) **`lib/app_localizations.dart`** — 6 مفاتيح جديدة: `wfSourceDynamic`/`wfDynamicScanNotice`/`wfFacDenied`/`wfStateChanged`/`wfValidating`/`wfNoTransitions`؛ `pubspec.yaml` — `1.0.69+69` | إصلاح جذري شامل: Draft invoices تظهر الآن، مستندات بدون Workflow Action تُكتشف، FAC يتحقق قبل كل إجراء، 417 errors ممنوعة |

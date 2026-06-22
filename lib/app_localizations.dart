@@ -19,7 +19,7 @@ class AppLocalizations {
   // ── Strings map ────────────────────────────────────────────────────────────
   static const Map<String, Map<String, String>> _s = {
     // ── General ──────────────────────────────────────────────────────────────
-    'appTitle':           {'en': 'KCSC AI',             'ar': 'KCSC AI'},
+    'appTitle':           {'en': 'Kashef',               'ar': 'كاشف'},
     'settings':           {'en': 'Settings',           'ar': 'الإعدادات'},
     'retry':              {'en': 'Retry',               'ar': 'إعادة المحاولة'},
     'cancel':             {'en': 'Cancel',              'ar': 'إلغاء'},
@@ -34,7 +34,7 @@ class AppLocalizations {
     'default_':           {'en': 'Default',             'ar': 'افتراضي'},
 
     // ── Home ─────────────────────────────────────────────────────────────────
-    'welcome':            {'en': 'Welcome to KCSC AI',   'ar': 'مرحباً بك في KCSC AI'},
+    'welcome':            {'en': 'Welcome to Kashef',    'ar': 'مرحباً بك في كاشف'},
     'tapToContinue':      {'en': 'Tap the button below to continue', 'ar': 'اضغط على الزر للمتابعة'},
     'login':              {'en': 'Login',               'ar': 'تسجيل الدخول'},
 
@@ -100,6 +100,36 @@ class AppLocalizations {
     'clearSettingsConfirm':{'en': 'This will remove all saved credentials. Continue?',
                             'ar': 'سيتم حذف جميع البيانات المحفوظة. هل تريد المتابعة؟'},
     'settingsCleared':    {'en': 'Settings cleared',     'ar': 'تم مسح الإعدادات'},
+
+    // ── Settings — logo ──────────────────────────────────────────────────────
+    'appLogoSection':     {'en': 'App Logo',             'ar': 'شعار التطبيق'},
+    'removeLogo':         {'en': 'Remove Custom Logo',   'ar': 'إزالة الشعار المخصص'},
+    'logoUpdated':        {'en': 'Logo updated',         'ar': 'تم تحديث الشعار'},
+    'noImageContent':     {'en': 'No image content found', 'ar': 'لم يُعثر على محتوى الصورة'},
+
+    // ── Settings — export/import ──────────────────────────────────────────────
+    'exportTooltip':      {'en': 'Export Settings (Backup)', 'ar': 'تصدير الإعدادات (نسخ احتياطي)'},
+    'importTooltip':      {'en': 'Import Settings',      'ar': 'استيراد الإعدادات'},
+    'backupSubject':      {'en': 'Kashef — Settings Backup', 'ar': 'كاشف — إعدادات النسخ الاحتياطي'},
+    'noFileContent':      {'en': 'No file content found.', 'ar': 'لم يُعثر على محتوى الملف.'},
+    'notSettingsFile':    {'en': 'The file is not a valid settings file.', 'ar': 'الملف ليس ملف إعدادات صالحاً.'},
+    'notKcscSettings':    {'en': 'File does not appear to be a Kashef settings file.', 'ar': 'الملف لا يبدو ملف إعدادات كاشف.'},
+
+    // ── Settings — AI provider labels ─────────────────────────────────────────
+    'providerClaudeOnly':   {'en': 'Claude Only',        'ar': 'Claude فقط'},
+    'providerChatGptOnly':  {'en': 'ChatGPT Only',       'ar': 'ChatGPT فقط'},
+    'providerClaudeFirst':  {'en': 'Claude First',       'ar': 'Claude أولاً'},
+    'providerChatGptFirst': {'en': 'ChatGPT First',      'ar': 'ChatGPT أولاً'},
+    'providerDescClaude':   {'en': 'Claude only — no fallback', 'ar': 'Claude فقط — بدون fallback'},
+    'providerDescChatGpt':  {'en': 'ChatGPT only — no fallback', 'ar': 'ChatGPT فقط — بدون fallback'},
+    'providerDescClaudeFirst': {'en': 'Claude first → falls back to ChatGPT automatically', 'ar': 'Claude أولاً ← عند الفشل ينتقل لـ ChatGPT تلقائياً'},
+    'providerDescChatGptFirst':{'en': 'ChatGPT first → falls back to Claude automatically', 'ar': 'ChatGPT أولاً ← عند الفشل ينتقل لـ Claude تلقائياً'},
+    'chatGptInfo':          {'en': 'ChatGPT is used via OpenAI API.\nRequires an OpenAI API Key with access to GPT-4 models.',
+                             'ar': 'يُستخدم ChatGPT عبر OpenAI API.\nيتطلب مفتاح OpenAI API Key مع صلاحية الوصول إلى نماذج GPT-4.'},
+
+    // ── Settings — misc ───────────────────────────────────────────────────────
+    'apiTokenOptional':   {'en': 'ERPNext API Token (Optional)', 'ar': 'رمز API لـ ERPNext (اختياري)'},
+
     'language':           {'en': 'Language',             'ar': 'اللغة'},
     'english':            {'en': 'English',              'ar': 'الإنجليزية'},
     'arabic':             {'en': 'Arabic',               'ar': 'العربية'},
@@ -215,6 +245,24 @@ class AppLocalizations {
     'q2':                 {'en': 'Show me the inventory report',        'ar': 'أظهر لي تقرير المخزون'},
     'q3':                 {'en': 'What are the company profits this month?', 'ar': 'ما هي أرباح الشركة هذا الشهر؟'},
     'q4':                 {'en': 'List of debtor customers',            'ar': 'قائمة العملاء المديونين'},
+
+    // ── Welcome card ──────────────────────────────────────────────────────────
+    'greetingMorning':    {'en': 'Good morning 🌅',         'ar': 'صباح الخير 🌅'},
+    'greetingAfternoon':  {'en': 'Good afternoon 🌞',       'ar': 'مساء الخير 🌞'},
+    'greetingEvening':    {'en': 'Good evening 🌙',         'ar': 'مساء النور 🌙'},
+    'agentName':          {'en': 'Kashef',                  'ar': 'كاشف'},
+    'assistantIntro':     {'en': 'I\'m **Kashef** — your intelligent assistant for ERPNext.',
+                           'ar': 'أنا **كاشف** — مساعدك الذكي المتكامل لنظام ERPNext.'},
+    'assistantModulesTitle':{'en': 'I cover all system modules:', 'ar': 'أغطي جميع موديولات النظام:'},
+    'assistantModules':   {'en': '🛒 Purchasing · 💰 Accounting · 👥 Human Resources\n📦 Inventory · 🏭 Manufacturing · 📊 Sales',
+                           'ar': '🛒 المشتريات · 💰 المحاسبة · 👥 الموارد البشرية\n📦 المخزون · 🏭 التصنيع · 📊 المبيعات'},
+    'assistantHelpQuestion':{'en': 'How can I help you today?', 'ar': 'تفضّل، بماذا أستطيع مساعدتك اليوم؟'},
+
+    // ── Voice / Microphone ────────────────────────────────────────────────────
+    'micPermissionDenied':{'en': 'Microphone permission denied', 'ar': 'تم رفض صلاحية الميكروفون'},
+
+    // ── Email ─────────────────────────────────────────────────────────────────
+    'emailSendFailed':    {'en': 'Failed to send email',    'ar': 'فشل إرسال البريد'},
 
     // ── HR Quick Actions ───────────────────────────────────────────────────────
     'hrAgentTitle':       {'en': 'HR AI Agent',                        'ar': 'HR AI Agent'},
@@ -353,6 +401,22 @@ class AppLocalizations {
     'dataReport':        {'en': 'Data Report',                    'ar': 'تقرير البيانات'},
     'send':              {'en': 'Send',                           'ar': 'إرسال'},
     'chooseLogo':        {'en': 'Choose Logo',                    'ar': 'اختر شعاراً'},
+
+    // ── n8n Webhook Chat ──────────────────────────────────────────────────────
+    'n8nChatTitle':      {'en': 'n8n Chat Bot',                   'ar': 'روبوت المحادثة n8n'},
+    'n8nChatSubtitle':   {'en': 'Online · Powered by n8n',        'ar': 'متصل · مدعوم بـ n8n'},
+    'n8nThinking':       {'en': 'n8n is thinking…',               'ar': 'n8n يفكر…'},
+    'n8nChatError':      {'en': 'Something went wrong. Try again.','ar': 'حدث خطأ. حاول مجدداً.'},
+    'n8nChatErrorBadge': {'en': 'Error',                          'ar': 'خطأ'},
+    'n8nChatPlaceholder':{'en': 'Type a message…',                'ar': 'اكتب رسالة…'},
+    'n8nChatEmpty':      {'en': 'Start a conversation\nAsk me anything about automation',
+                          'ar': 'ابدأ محادثة\nاسألني أي شيء عن الأتمتة'},
+    'n8nNewChat':        {'en': 'New Chat',                       'ar': 'محادثة جديدة'},
+    'n8nNewChatConfirm': {'en': 'Start a new session? Current chat will be cleared.',
+                          'ar': 'بدء جلسة جديدة؟ سيتم مسح المحادثة الحالية.'},
+    'n8nSuggestion1':    {'en': 'What workflows are active?',     'ar': 'ما سير الأعمال النشطة؟'},
+    'n8nSuggestion2':    {'en': 'Show latest executions',         'ar': 'أظهر آخر التنفيذات'},
+    'n8nSuggestion3':    {'en': 'How can you help me?',           'ar': 'كيف يمكنك مساعدتي؟'},
   };
 
   String _t(String key) =>
@@ -430,6 +494,44 @@ class AppLocalizations {
   String get clearSettingsTitle  => _t('clearSettingsTitle');
   String get clearSettingsConfirm=> _t('clearSettingsConfirm');
   String get settingsCleared     => _t('settingsCleared');
+
+  // Settings — logo
+  String get appLogoSection      => _t('appLogoSection');
+  String get removeLogo          => _t('removeLogo');
+  String get logoUpdated         => _t('logoUpdated');
+  String get noImageContent      => _t('noImageContent');
+
+  // Settings — export/import
+  String get exportTooltip       => _t('exportTooltip');
+  String get importTooltip       => _t('importTooltip');
+  String get backupSubject       => _t('backupSubject');
+  String get noFileContent       => _t('noFileContent');
+  String get notSettingsFile     => _t('notSettingsFile');
+  String get notKcscSettings     => _t('notKcscSettings');
+  String exportFailed(String e)  => isArabic ? 'فشل التصدير: $e' : 'Export failed: $e';
+  String importSuccess(int n)    => isArabic ? 'تم استيراد $n إعداد بنجاح ✓' : 'Imported $n settings successfully ✓';
+  String importFailed(String e)  => isArabic ? 'فشل الاستيراد: $e' : 'Import failed: $e';
+
+  // Settings — AI provider
+  String get providerClaudeOnly    => _t('providerClaudeOnly');
+  String get providerChatGptOnly   => _t('providerChatGptOnly');
+  String get providerClaudeFirst   => _t('providerClaudeFirst');
+  String get providerChatGptFirst  => _t('providerChatGptFirst');
+  String get providerDescClaude    => _t('providerDescClaude');
+  String get providerDescChatGpt   => _t('providerDescChatGpt');
+  String get providerDescClaudeFirst  => _t('providerDescClaudeFirst');
+  String get providerDescChatGptFirst => _t('providerDescChatGptFirst');
+  String get chatGptInfo           => _t('chatGptInfo');
+  String get apiTokenOptional      => _t('apiTokenOptional');
+  String providerDesc(String provider) {
+    switch (provider) {
+      case 'claude':       return providerDescClaude;
+      case 'chatgpt':      return providerDescChatGpt;
+      case 'claude_first': return providerDescClaudeFirst;
+      default:             return providerDescChatGptFirst;
+    }
+  }
+
   String get language            => _t('language');
   String get english             => _t('english');
   String get arabic              => _t('arabic');
@@ -579,6 +681,31 @@ class AppLocalizations {
   String get q3                  => _t('q3');
   String get q4                  => _t('q4');
 
+  // Welcome card
+  String get greetingMorning         => _t('greetingMorning');
+  String get greetingAfternoon       => _t('greetingAfternoon');
+  String get greetingEvening         => _t('greetingEvening');
+  String get agentName               => _t('agentName');
+  String get assistantIntro          => _t('assistantIntro');
+  String get assistantModulesTitle   => _t('assistantModulesTitle');
+  String get assistantModules        => _t('assistantModules');
+  String get assistantHelpQuestion   => _t('assistantHelpQuestion');
+  String greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return greetingMorning;
+    if (h < 17) return greetingAfternoon;
+    return greetingEvening;
+  }
+
+  // Voice / microphone
+  String get micPermissionDenied     => _t('micPermissionDenied');
+  String micError(String e)          => isArabic ? '❌ خطأ في الميكروفون: $e' : '❌ Microphone: $e';
+  String whisperError(String e)      => isArabic ? '❌ خطأ في التحويل الصوتي: $e' : '❌ Whisper: $e';
+  String voiceGenericError(String e) => '❌ $e';
+
+  // Email
+  String emailSendFailed(String e)   => isArabic ? '❌ فشل إرسال البريد: $e' : '❌ Failed to send email: $e';
+
   String get hrAgentTitle        => _t('hrAgentTitle');
   String get hrAgentSubtitle     => _t('hrAgentSubtitle');
   String get quickActions        => _t('quickActions');
@@ -686,6 +813,20 @@ class AppLocalizations {
   String get dataReport        => _t('dataReport');
   String get send              => _t('send');
   String get chooseLogo        => _t('chooseLogo');
+
+  // ── n8n Webhook Chat ─────────────────────────────────────────────────────
+  String get n8nChatTitle       => _t('n8nChatTitle');
+  String get n8nChatSubtitle    => _t('n8nChatSubtitle');
+  String get n8nThinking        => _t('n8nThinking');
+  String get n8nChatError       => _t('n8nChatError');
+  String get n8nChatErrorBadge  => _t('n8nChatErrorBadge');
+  String get n8nChatPlaceholder => _t('n8nChatPlaceholder');
+  String get n8nChatEmpty       => _t('n8nChatEmpty');
+  String get n8nNewChat         => _t('n8nNewChat');
+  String get n8nNewChatConfirm  => _t('n8nNewChatConfirm');
+  String get n8nSuggestion1     => _t('n8nSuggestion1');
+  String get n8nSuggestion2     => _t('n8nSuggestion2');
+  String get n8nSuggestion3     => _t('n8nSuggestion3');
 
   // ── Workflow / Document Viewer ─────────────────────────────────────────────
   String get wfDocumentDetails    => _t('wfDocumentDetails');

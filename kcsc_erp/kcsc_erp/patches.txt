@@ -1,0 +1,2 @@
+# Patches are executed in order on bench migrate.
+# Format: app.patches.patch_module

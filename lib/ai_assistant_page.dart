@@ -183,6 +183,8 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     if (_messages.isEmpty) _injectWelcomeMessage();
     // Ensure realtime service is running (covers users who skipped the login page)
     RealtimeWorkflowService().initialize().ignore();
+    // Pre-warm MCP tools cache so first message skips initialize + tools/list delay
+    _getTools().ignore();
   }
 
   Future<void> _persistHistory() async {
@@ -238,34 +240,13 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
   }
 
   String _buildWelcomeMessage() {
-    final isAr = AppLocalizations.of(context).isArabic;
-    final hour = DateTime.now().hour;
-
-    if (isAr) {
-      final greeting = hour < 12
-          ? 'صباح الخير 🌅'
-          : hour < 17
-          ? 'مساء الخير 🌞'
-          : 'مساء النور 🌙';
-      return '$greeting\n\n'
-          'أنا **المساعد الذكي في نظام KCSC** — مساعدك الذكي المتكامل لنظام ERPNext.\n\n'
-          'أغطي جميع موديولات النظام:\n'
-          '🛒 المشتريات · 💰 المحاسبة · 👥 الموارد البشرية\n'
-          '📦 المخزون · 🏭 التصنيع · 📊 المبيعات\n\n'
-          'تفضّل، بماذا أستطيع مساعدتك اليوم؟';
-    } else {
-      final greeting = hour < 12
-          ? 'Good morning 🌅'
-          : hour < 17
-          ? 'Good afternoon 🌞'
-          : 'Good evening 🌙';
-      return '$greeting\n\n'
-          'I\'m **KCSC ERP AI Agent** — your intelligent assistant for ERPNext.\n\n'
-          'I cover all system modules:\n'
-          '🛒 Purchasing · 💰 Accounting · 👥 Human Resources\n'
-          '📦 Inventory · 🏭 Manufacturing · 📊 Sales\n\n'
-          'How can I help you today?';
-    }
+    final l = AppLocalizations.of(context);
+    final greeting = l.greeting();
+    return '$greeting\n\n'
+        '${l.assistantIntro}\n\n'
+        '${l.assistantModulesTitle}\n'
+        '${l.assistantModules}\n\n'
+        '${l.assistantHelpQuestion}';
   }
 
   static const _moduleKeywords = <String, (String id, String label)>{
@@ -561,12 +542,12 @@ class _AiAssistantPageState extends State<AiAssistantPage> {
     final timezone = _timezone.isNotEmpty ? _timezone : '(غير محدد)';
     final country = _country.isNotEmpty ? _country : '(غير محدد)';
 
-    const agentName = 'KCSC ERP AI Agent';
+    const agentName = 'Kashef';
     const agentDescAr =
-        'أنا المساعد الذكي في نظام KCSC — مساعدك الذكي المتكامل لنظام ERPNext في شركة KCSC. '
+        'أنا كاشف — مساعدك الذكي المتكامل لنظام ERPNext في شركة KCSC. '
         'أغطي جميع الموديولات: المشتريات (أولوية)، المحاسبة، الموارد البشرية، المخزون، التصنيع، والمبيعات.';
     const agentDescEn =
-        'I am KCSC ERP AI Agent — your integrated intelligent assistant for ERPNext at KCSC. '
+        'I am Kashef — your integrated intelligent assistant for ERPNext at KCSC. '
         'I cover all modules: Purchasing (priority), Accounting, HR, Inventory, Manufacturing, and Sales.';
 
     return '''## IDENTITY
@@ -2420,15 +2401,15 @@ Rule: never combine a chart and a table in the same reply.''';
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.of(context).primary,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            icon: Icon(Icons.save_rounded, size: 16),
-            label: Text('حفظ'),
+            icon: const Icon(Icons.save_rounded, size: 16),
+            label: Text(l10n.save),
           ),
         ],
       ),
@@ -2539,7 +2520,7 @@ Rule: never combine a chart and a table in the same reply.''';
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ فشل إرسال البريد: $e'),
+          content: Text(AppLocalizations.of(context).emailSendFailed(e.toString())),
           backgroundColor: Colors.red.shade700,
           duration: const Duration(seconds: 5),
         ),
@@ -3988,7 +3969,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isAr ? 'المساعد الذكي في نظام KCSC' : 'KCSC ERP AI Agent',
+            isAr ? 'كاشف' : 'Kashef',
             style: TextStyle(
               color: AppColors.of(context).textPrimary,
               fontSize: 20,
@@ -4958,10 +4939,7 @@ class _MessageBubble extends StatelessWidget {
     final bodyFont = isArabic ? cairoFont : interFont;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // اسم الـ agent حسب اللغة
-    final agentDisplayName = isArabic
-        ? 'المساعد الذكي في نظام KCSC'
-        : 'KCSC ERP AI Agent';
+    final agentDisplayName = AppLocalizations.of(context).agentName;
 
     // لون العنوان: في الـ dark يكون primary مضيء، في الـ light يكون textPrimary داكن
     final headerTitleColor = isDark ? c.primary : c.textPrimary;
@@ -5209,9 +5187,10 @@ class _InputBarState extends State<_InputBar> {
           setState(() => isRecording = true);
         } catch (e) {
           if (!mounted) return;
+          final l = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('❌ Microphone: $e'),
+              content: Text(l.micError(e.toString())),
               backgroundColor: Colors.red.shade700,
             ),
           );
@@ -5221,7 +5200,7 @@ class _InputBarState extends State<_InputBar> {
         if (!hasPermission) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Microphone permission denied')),
+            SnackBar(content: Text(AppLocalizations.of(context).micPermissionDenied)),
           );
           return;
         }
@@ -5302,9 +5281,11 @@ class _InputBarState extends State<_InputBar> {
         );
       } else {
         final err = json['error']?['message'] as String? ?? 'Unknown error';
+        if (!mounted) return;
+        final l = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Whisper: $err'),
+            content: Text(l.whisperError(err)),
             backgroundColor: Colors.red.shade700,
           ),
         );
@@ -5312,7 +5293,10 @@ class _InputBarState extends State<_InputBar> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ $e'), backgroundColor: Colors.red.shade700),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).voiceGenericError(e.toString())),
+          backgroundColor: Colors.red.shade700,
+        ),
       );
     } finally {
       if (!kIsWeb) {

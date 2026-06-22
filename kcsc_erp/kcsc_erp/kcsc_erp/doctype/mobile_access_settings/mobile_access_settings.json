@@ -1,0 +1,114 @@
+{
+ "actions": [],
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_mobile_access",
+  "max_devices_per_user",
+  "require_device_approval",
+  "enable_otp_login",
+  "section_ai_config",
+  "ai_provider",
+  "default_ai_model",
+  "column_break_ai",
+  "anthropic_api_key",
+  "openai_api_key"
+ ],
+ "fields": [
+  {
+   "bold": 1,
+   "default": "1",
+   "fieldname": "enable_mobile_access",
+   "fieldtype": "Check",
+   "idx": 1,
+   "label": "Enable Mobile Access"
+  },
+  {
+   "default": "3",
+   "fieldname": "max_devices_per_user",
+   "fieldtype": "Int",
+   "idx": 2,
+   "label": "Max Devices Per User",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "New devices must be approved by an administrator before login is allowed",
+   "fieldname": "require_device_approval",
+   "fieldtype": "Check",
+   "idx": 3,
+   "label": "Require Device Approval"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_otp_login",
+   "fieldtype": "Check",
+   "idx": 4,
+   "label": "Enable OTP Login"
+  },
+  {
+   "fieldname": "section_ai_config",
+   "fieldtype": "Section Break",
+   "idx": 5,
+   "label": "AI Configuration"
+  },
+  {
+   "default": "Anthropic",
+   "fieldname": "ai_provider",
+   "fieldtype": "Select",
+   "idx": 6,
+   "label": "AI Provider",
+   "options": "Anthropic\nOpenAI",
+   "reqd": 1
+  },
+  {
+   "description": "Leave blank to use the provider's default model",
+   "fieldname": "default_ai_model",
+   "fieldtype": "Data",
+   "idx": 7,
+   "label": "Default AI Model",
+   "placeholder": "e.g. claude-sonnet-4-6 or gpt-4o"
+  },
+  {
+   "fieldname": "column_break_ai",
+   "fieldtype": "Column Break",
+   "idx": 8
+  },
+  {
+   "description": "Stored encrypted. Used for Claude AI (Anthropic).",
+   "fieldname": "anthropic_api_key",
+   "fieldtype": "Password",
+   "idx": 9,
+   "label": "Anthropic API Key"
+  },
+  {
+   "description": "Stored encrypted. Used for GPT-4o (OpenAI).",
+   "fieldname": "openai_api_key",
+   "fieldtype": "Password",
+   "idx": 10,
+   "label": "OpenAI API Key"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "KCSC ERP",
+ "name": "Mobile Access Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "permlevel": 0,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

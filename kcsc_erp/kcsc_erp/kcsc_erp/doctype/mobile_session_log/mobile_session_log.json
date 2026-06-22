@@ -1,0 +1,86 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2024-01-01 00:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "device_id",
+  "login_time",
+  "logout_time",
+  "ip_address",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "idx": 1,
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "device_id",
+   "fieldtype": "Data",
+   "idx": 2,
+   "in_list_view": 1,
+   "label": "Device ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "login_time",
+   "fieldtype": "Datetime",
+   "idx": 3,
+   "in_list_view": 1,
+   "label": "Login Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "logout_time",
+   "fieldtype": "Datetime",
+   "idx": 4,
+   "label": "Logout Time"
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "idx": 5,
+   "in_list_view": 1,
+   "label": "IP Address"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "idx": 6,
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nLoggedOut\nForceLogout\nExpired"
+  }
+ ],
+ "links": [],
+ "modified": "2024-01-01 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "KCSC ERP",
+ "name": "Mobile Session Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "permlevel": 0,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "login_time",
+ "sort_order": "DESC",
+ "track_changes": 0
+}

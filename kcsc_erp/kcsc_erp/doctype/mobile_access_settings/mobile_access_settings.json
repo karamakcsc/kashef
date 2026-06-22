@@ -1,0 +1,59 @@
+{
+  "actions": [],
+  "creation": "2024-01-01 00:00:00.000000",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "enable_mobile_access", "max_devices_per_user",
+    "require_device_approval", "enable_otp_login"
+  ],
+  "fields": [
+    {
+      "fieldname": "enable_mobile_access",
+      "fieldtype": "Check",
+      "label": "Enable Mobile Access",
+      "default": "1",
+      "bold": 1
+    },
+    {
+      "fieldname": "max_devices_per_user",
+      "fieldtype": "Int",
+      "label": "Max Devices Per User",
+      "default": "3",
+      "reqd": 1
+    },
+    {
+      "fieldname": "require_device_approval",
+      "fieldtype": "Check",
+      "label": "Require Device Approval",
+      "default": "0",
+      "description": "New devices must be approved by admin before login is allowed"
+    },
+    {
+      "fieldname": "enable_otp_login",
+      "fieldtype": "Check",
+      "label": "Enable OTP Login",
+      "default": "0"
+    }
+  ],
+  "issingle": 1,
+  "links": [],
+  "modified": "2024-01-01 00:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "KCSC ERP",
+  "name": "Mobile Access Settings",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "read": 1,
+      "role": "System Manager",
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "track_changes": 1
+}
