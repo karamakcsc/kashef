@@ -22,7 +22,7 @@ Widget buildLogoWidget({required String path, double height = 80}) {
         height: height,
         fit: BoxFit.contain,
         errorBuilder: (ctx, e, st) => Image.asset(
-          'images/faheem_logo.png',
+          'images/kashef_logo.jpeg',
           height: height,
           fit: BoxFit.contain,
           errorBuilder: (ctx2, e2, st2) => Icon(
@@ -35,7 +35,7 @@ Widget buildLogoWidget({required String path, double height = 80}) {
     }
   }
   return Image.asset(
-    'images/faheem_logo.png',
+    'images/kashef_logo.jpeg',
     height: height,
     fit: BoxFit.contain,
     errorBuilder: (ctx, e, st) =>
