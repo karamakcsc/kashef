@@ -1,4 +1,4 @@
-package com.example.kcsc_ai
+package com.kcsc.kashef
 
 import io.flutter.embedding.android.FlutterActivity
 

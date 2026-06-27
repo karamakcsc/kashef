@@ -566,6 +566,14 @@ DETECT the language of the user's message and ALWAYS reply in that EXACT languag
 • Voice message with detected language hint → use that language
 NEVER switch languages mid-conversation unless the user switches first.
 
+══════════ RULE 0.2 — NAME SCRIPT IN MIXED COMMANDS ══════════
+When the user writes a command in English but includes a name in Arabic script (e.g. "Create محمد as a supplier"):
+• DO NOT store the name as Arabic script automatically.
+• ASK the user: "Do you want the name stored as محمد (Arabic) or Mohammad (English)?"
+• Wait for their answer before creating the record.
+• Exception: if the user says "اعمل الازم" or "just do it" → use the Arabic script as-is.
+Same rule applies in Arabic commands with English names.
+
 ══════════ RULE 0.5 — IMAGE & FILE HANDLING ══════════
 ⚠️ PDF Arabic Text: If file content starts with "[PDF Content" or you notice reversed/garbled Arabic word order in a PDF, re-order the words correctly before processing. Arabic PDFs stored as raw streams may have reversed glyph order.
 
@@ -5254,6 +5262,17 @@ class _InputBarState extends State<_InputBar> {
             // and does not support verbose_json — use json (no language field returned)
             ..fields['model'] = 'gpt-4o-transcribe'
             ..fields['response_format'] = 'json'
+            // Domain prompt helps model recognize ERP-specific terminology in both EN and AR
+            ..fields['prompt'] =
+                'ERPNext ERP system. Terms: supplier, customer, invoice, '
+                'purchase order, sales order, purchase invoice, sales invoice, '
+                'warehouse, item, employee, payroll, accounting, ledger, '
+                'journal entry, delivery note, purchase receipt, quotation, '
+                'stock entry, payment entry, expense claim, leave request. '
+                'مصطلحات: مورّد، عميل، فاتورة، أمر شراء، أمر بيع، '
+                'فاتورة مشتريات، فاتورة مبيعات، مخزن، صنف، موظف، '
+                'رواتب، محاسبة، دفتر الأستاذ، قيد يومية، سند قبض، '
+                'سند صرف، طلب عرض سعر، إدخال مخزون، مطالبة مصروفات.'
             ..files.add(
               http.MultipartFile.fromBytes(
                 'file',

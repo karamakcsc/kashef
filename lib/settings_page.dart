@@ -1,12 +1,13 @@
 ﻿import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'web_download.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
@@ -336,16 +337,24 @@ class _SettingsPageState extends State<SettingsPage> {
           );
         }
       } else {
-        // Mobile / desktop: write temp file then open share sheet
-        final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/kcsc_ai_backup.json');
-        await file.writeAsString(jsonStr);
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [XFile(file.path, mimeType: 'application/json')],
-            subject: l.backupSubject,
-          ),
+        // Mobile: save directly to Downloads folder via MediaStore (Android 10+)
+        // or /storage/emulated/0/Download/ (Android < 10)
+        final name = _backupFileName().replaceAll('.json', '');
+        await FileSaver.instance.saveFile(
+          name: name,
+          bytes: Uint8List.fromList(utf8.encode(jsonStr)),
+          ext: 'json',
+          mimeType: MimeType.json,
         );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l.exportSuccess),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -363,11 +372,15 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _importSettings() async {
     final l = AppLocalizations.of(context);
     try {
-      // any — يقبل أي نوع ملف لأن بعض التطبيقات (Drive/WhatsApp) لا تُرسل مع MIME صحيح
+      // any — يقبل أي نوع ملف؛ initialDirectory يفتح على Downloads مباشرة على Android
+      final downloadsPath = kIsWeb
+          ? null
+          : '/storage/emulated/0/Download';
       final result = await FilePicker.platform.pickFiles(
         type: FileType.any,
         withData: true,
         withReadStream: true,
+        initialDirectory: kIsWeb ? null : downloadsPath,
       );
 
       if (result == null || result.files.isEmpty) return;
