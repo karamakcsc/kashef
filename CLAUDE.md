@@ -318,7 +318,7 @@ _loadCachedDefs()   → تُستدعى عند فتح التقرير — تتخط
 - **FAC أولاً دائماً** — النظام يعتمد على أدوات FAC/MCP كأولوية قصوى لكل العمليات
 - **إرسال البريد الإلكتروني عبر FAC** — AI يكتشف أدوات البريد في FAC ويستخدمها مباشرة
 - **تصدير الملفات عبر FAC** — Excel/PDF/Word/CSV عبر أدوات FAC المتاحة
-- **إرسال صوتي تلقائي** — تسجيل m4a (Android) أو webm/opus (Web) عبر `record` → Whisper API → نص → إرسال؛ يستخدم `kIsWeb` للتفريق بين المنصتين
+- **إرسال صوتي تلقائي** — تسجيل m4a (Android) أو webm/opus (Web) عبر `record` → **`gpt-4o-transcribe`** (OpenAI) → نص → إرسال؛ يستخدم `kIsWeb` للتفريق بين المنصتين؛ `prompt` field يحتوي مصطلحات ERP ثنائية اللغة (EN+AR) لتحسين دقة التعرف؛ `response_format: 'json'` (لا `verbose_json` — gpt-4o-transcribe لا يدعمه)
 - **عرض الجداول HTML-style** — `_HtmlTable` (DataTable + SingleChildScrollView horizontal)
 - **عرض الرسوم البيانية** — `<chart>JSON</chart>` → fl_chart (bar/line/pie)
 - **AI يسأل عن نوع الرسم أولاً** — إذا حدّد المستخدم النوع ولديه البيانات يولّد فوراً
@@ -335,6 +335,7 @@ _loadCachedDefs()   → تُستدعى عند فتح التقرير — تتخط
 - **زر Stop** — إيقاف الـ AI فوراً بين tool calls أثناء المعالجة
 - **رفع الملفات إلى ERPNext** — قبل إرسالها للـ AI مع تمرير file_url للـ AI
 - إعادة المحاولة تلقائياً عند انتهاء الجلسة (session expiry)
+- **RULE 0.2 — الأسماء متعددة الخطوط في الأوامر المختلطة** — عندما يكتب المستخدم أمراً بالإنجليزية ويُضمّن اسماً بالعربية (مثال: "Create محمد as a supplier"): AI يسأل "Do you want the name stored as محمد (Arabic) or Mohammad (English)?" ولا يُنشئ السجل إلا بعد الرد؛ استثناء: "اعمل الازم" يستخدم الاسم كما هو
 - **RULE 5 — Workflow & Document Viewer** — AI يُدرج `<open_document doctype="X" docname="Y"/>` عند ذكر مستند محدد؛ يستخدم `run_workflow` FAC أولاً ثم يفتح الـ viewer كـ fallback
 
 ### 7.4 تنسيق Dashboard Chart عند الحفظ
@@ -625,7 +626,7 @@ location /webhook/ {
 **الميزات:**
 - **RTL تلقائي** — `_detectDir()` تفحص أول code-point: نطاق عربي/عبري → `TextDirection.rtl`
 - **Long-press copy** — `Clipboard.setData` + SnackBar على كل فقاعة
-- **Session** — `Random.secure()` + timestamp → `kcsc_{ms}_{12chars}` محفوظ في `n8n_webhook_session_id`
+- **Session** — `Random.secure()` + timestamp → `kcsc_{ms}_{12chars}` محفوظ في `n8n_session_id`
 - **Retry** — حتى 2 محاولات مع backoff 1s/2s قبل عرض رسالة الخطأ
 - **New Chat** — Dialog تأكيد → `resetSession()` → مسح القائمة
 - **Suggestion chips** — 3 اقتراحات جاهزة تُرسل فوراً عند الضغط (i18n: `n8nSuggestion1/2/3`)
@@ -634,7 +635,7 @@ location /webhook/ {
 `n8nChatTitle` / `n8nChatSubtitle` / `n8nThinking` / `n8nChatError` / `n8nChatErrorBadge` / `n8nChatPlaceholder` / `n8nChatEmpty` / `n8nNewChat` / `n8nNewChatConfirm` / `n8nSuggestion1` / `n8nSuggestion2` / `n8nSuggestion3`
 
 **SharedPreferences المُستخدمة:**
-- `n8n_webhook_session_id` — session ID (يُحفظ عند أول تشغيل، يُجدَّد عند New Chat)
+- `n8n_session_id` — session ID (يُحفظ عند أول تشغيل، يُجدَّد عند New Chat)
 
 **Drawer:**
 - `DrawerSection.n8nWebhookChat` جديد في enum
@@ -733,6 +734,7 @@ share_plus: ^12.0.1        # مشاركة الملفات (PDF/CSV/Excel)
 image_picker: ^1.0.7       # التقاط صور من الكاميرا أو معرض الجهاز
 archive: ^3.4.9            # استخراج نصوص من DOCX/XLSX/PPTX (ZipDecoder + UTF-8)
 http_parser: ^4.0.2        # تحديد Content-Type عند رفع الملفات لـ ERPNext
+file_saver: ^0.2.14        # حفظ ملفات مباشرة في Downloads (MediaStore API على Android 10+ — لا يحتاج صلاحيات)
 flutter_launcher_icons: ^0.14.3  # توليد أيقونات التطبيق (dev dependency)
 ```
 > `speech_to_text` حُذف — استُبدل بـ `record` + Whisper لدعم كل اللغات بدون حزم مثبتة
@@ -1052,7 +1054,13 @@ Container(color: Color(0xFFXXXXXX))
 | 2026-05-12 | `ai_assistant_page.dart` — **إصلاح OCR بدون تعديل السيرفر — Native Vision للصور**: تشخيص جذري لخطأ PaddleOCR: `extract_file_content` FAC tool تُشغّل الـ subprocess بـ `sys.executable` (Frappe Python 3.14) الذي يملك `paddleocr 3.5.0` بلا `paddlepaddle`؛ بينما البيئة الصحيحة `/opt/ocr-service/venv` (Python 3.10 + paddlepaddle 3.0.0) لا تُستدعى أبداً؛ **الحل داخل التطبيق (بدون أي تعديل على السيرفر):** تحديث 3 أقسام في system prompt: (1) RULE 0.5 — استبدال "use extract-file-content-usage for images" بـ "PRIMARY: use native vision on base64 directly"; (2) FAC ROUTING ENGINE ④ — الصور → native vision، PDF/Excel/DOCX → extract-file-content-usage كما هو؛ (3) `_facRoutingHint()` — تغيير hint الصور من "extract-file-content-usage for deep OCR" إلى "use YOUR NATIVE VISION (no FAC OCR needed)"؛ المبرر: Claude يستقبل الصورة كـ base64 في نفس الرسالة — لديه رؤية بصرية كاملة بدون أي أداة خارجية، أسرع وأدق للفواتير العربية؛ APK (64.6 MB) + Web ✅ | خطأ "Engine paddle_static unavailable" عند OCR أي صورة — الحل: Claude يقرأ الصورة بنفسه مباشرة |
 | 2026-06-23 | **تصفير الإصدار**: `pubspec.yaml` — `version: 1.0.78+78` → `version: 1.0.0+1`؛ `build.gradle.kts` يقرأ الإصدار تلقائياً من pubspec | إعادة البداية بإصدار جديد بعد إعادة التسمية |
 | 2026-06-23 | **إعادة تسمية التطبيق إلى "Kashef (كاشف)"**: تغيير "Faheem"/"فهيم" → "Kashef"/"كاشف" في: `app_localizations.dart` (6 مفاتيح)، `main.dart`، `ai_assistant_page.dart`، `background_service.dart`، `realtime_workflow_service.dart`، `AndroidManifest.xml`، `web/manifest.json`، `web/index.html` | طلب المستخدم |
-| 2026-06-28 | **تغيير Android Application ID + دعم العربية في الصوت**: `build.gradle.kts` — `applicationId`/`namespace` → `com.kcsc.kashef` (كان `com.example.kcsc_ai` — يُرفض بـ "package appears invalid" عند التثبيت)؛ نقل `MainActivity.kt` من `com/example/kcsc_ai/` إلى `com/kcsc/kashef/`؛ `ai_assistant_page.dart` — إضافة مصطلحات ERP بالعربية في `prompt` field لـ `gpt-4o-transcribe` (مورّد/عميل/فاتورة/أمر شراء...) + المصطلحات الإنجليزية — النموذج الآن يتعرف على مصطلحات ERP بكلا اللغتَين؛ APK (64.9 MB) ✅ + Web ✅ | `com.example` prefix يُطلق Google Play Protect warning → "App not installed as package appears to be invalid" عند أول تثبيت |
+| 2026-06-28 | **تغيير Android Application ID**: `build.gradle.kts` — `applicationId`/`namespace` → `com.kcsc.kashef` (كان `com.example.kcsc_ai` — يُرفض بـ "package appears invalid" عند التثبيت)؛ نقل `MainActivity.kt` من `com/example/kcsc_ai/` إلى `com/kcsc/kashef/` | `com.example` prefix يُطلق Google Play Protect warning → "App not installed as package appears to be invalid" عند أول تثبيت |
+| 2026-06-28 | **تحسين دقة التفريغ الصوتي — مصطلحات ERP ثنائية اللغة**: `ai_assistant_page.dart` — إضافة `prompt` field لـ `gpt-4o-transcribe`: مصطلحات ERP بالإنجليزية (supplier, invoice, purchase order...) + بالعربية (مورّد، فاتورة، أمر شراء...) — النموذج يُفضّل المصطلحات المعروفة فونيتياً → يمنع "Arfan/sublayer" بدل "Irfan/supplier" | خطأ فونيتي: `gpt-4o-transcribe` بدون domain context يُخطئ في الكلمات التقنية؛ `prompt` يُرشد النموذج لتفضيل المصطلحات الصحيحة |
+| 2026-06-28 | **RULE 0.2 — الأسماء متعددة الخطوط في الأوامر المختلطة**: `ai_assistant_page.dart` — إضافة RULE 0.2 في system prompt: عند وجود اسم بالعربية في أمر إنجليزي (أو العكس)، AI يسأل عن الخط المطلوب قبل إنشاء السجل؛ استثناء: "اعمل الازم" → يستخدم الاسم كما هو | إنشاء "محمد" بالعربية في سجل إنجليزي بدون استفسار — المستخدم قد يريد "Mohammad" |
+| 2026-06-28 | **إعادة كتابة RULE 0.2 — تأكيد قبل أي إنشاء مستند**: `ai_assistant_page.dart` — تحويل RULE 0.2 من "سؤال عن نص الاسم" إلى قاعدة شاملة: AI يعرض ملخص المستند (النوع + الاسم) ويطلب تأكيداً صريحاً قبل كل `create_document` أو أداة FAC تُنشئ سجلاً؛ استثناءات: "اعمل الازم"/"just do it"/"نفذ"/"confirm"؛ إضافة كشف أسماء عربية بحروف لاتينية (Mohamed/Ahmed/Hassan/Ali/Omar/Ibrahim...) تُضاف تلقائياً لرسالة التأكيد: "Should the name be stored as Mohamed (English) or محمد (Arabic)?" | AI كان يُنشئ المستند فوراً بدون تأكيد — السبب: RULE 0.2 القديمة تنشّط فقط عند حروف عربية في الأمر، فـ"Mohamed" بالإنجليزية لم تُفعّلها |
+| 2026-06-28 | **إصلاح كشف لغة التفريغ الصوتي — Unicode-based detection**: `ai_assistant_page.dart` — `transcribeAndSend()`: حذف اعتماد `json['language']` (غائب في رد `gpt-4o-transcribe` مع `response_format:json`)؛ الاستبدال بفحص Unicode: `text.runes.any((r) => r >= 0x0590 && r <= 0x08FF)` لكشف العربية/العبرية؛ `lang` دائماً غير null ("Arabic" أو "English") — يُمرَّر لـ `_sendMessage` كـ `languageHint` فيُضاف `[Voice message — detected language: X. You MUST reply in X only.]` في كل رسالة صوتية؛ APK (65.0 MB) ✅ + Web ✅ | السبب الجذري: `gpt-4o-transcribe` مع `response_format:json` لا يُعيد `language` field أبداً → `lang = null` → لا prefix → AI يتجاهل RULE 0 ويرد بالعربية رغم أن الرسالة إنجليزية |
+| 2026-06-28 | **إصلاح اتجاه فقاعات المحادثة — per-bubble Directionality**: `ai_assistant_page.dart` — إضافة `_contentDir(String text)` static helper في `_MessageBubble`: يفحص أول رمز غير مسافة من `text.runes`، إذا كان في نطاق Arabic/Hebrew (0x0590–0x08FF) يُعيد `TextDirection.rtl`، وإلا `TextDirection.ltr`؛ `build()`: `contentDir = _contentDir(message.text)`، `contentFont = isRtl ? 'Cairo' : 'Inter'`؛ `MessageRenderer` مُغلَّف بـ `Directionality(textDirection: contentDir)` — الاتجاه مأخوذ من محتوى الرسالة لا من لغة التطبيق؛ label الـ AI يستخدم `isArabic` (لغة التطبيق) منفصلاً؛ APK (65.0 MB) ✅ + Web ✅ | فقاعات العربية كانت تظهر من اليسار لليمين عند ضبط لغة التطبيق على الإنجليزية — السبب: `Directionality` العالمي LTR يتجاوز اتجاه النص المحلي؛ الحل: كل فقاعة لها `Directionality` مستقلة مبنية على محتواها |
+| 2026-06-28 | **تصدير الإعدادات إلى Downloads + استيراد من Downloads**: `pubspec.yaml` — إضافة `file_saver: ^0.2.14`؛ `AndroidManifest.xml` — إضافة `WRITE_EXTERNAL_STORAGE` (maxSdkVersion=28) لـ Android < 10؛ `settings_page.dart` — Mobile export: `FileSaver.instance.saveFile()` يحفظ مباشرة في Downloads عبر MediaStore API (Android 10+) بدون صلاحيات إضافية؛ Import: `initialDirectory: '/storage/emulated/0/Download'` يفتح مدير الملفات على مجلد Downloads مباشرة؛ APK (64.9 MB) ✅ + Web ✅ | التصدير القديم كان يحفظ في مجلد مخفي (temp dir) ويفتح share sheet؛ المستخدم يريد الملف في Downloads مباشرة |
 | 2026-06-27 | **اسم ملف التصدير الديناميكي**: `settings_page.dart` — إضافة `_backupFileName()` تولّد اسم ملف بالتنسيق `Kashef_backup_YYYY-MM-DD_HH-mm-ss.json` بدون حزمة إضافية (padding يدوي)؛ استبدال `'kcsc_ai_backup.json'` الثابت في كلا المسارَين (Web + Mobile) | الاسم الثابت لا يُميّز بين النسخ الاحتياطية المتعددة |
 | 2026-06-27 | **إصلاح تصدير الإعدادات على Flutter Web**: `settings_page.dart` — `_exportSettings()`: إضافة `kIsWeb` branch — على Web: `downloadBytesInBrowser(utf8.encode(jsonStr), 'kcsc_ai_backup.json', 'application/json')` يُنزِّل الملف مباشرة في المتصفح بدون `getTemporaryDirectory`/`File`/`SharePlus` (كلها غير مدعومة على Web)؛ على Mobile/Desktop: يبقى السلوك القديم (temp file + SharePlus share sheet) بدون أي تغيير؛ `app_localizations.dart` — إضافة مفتاح `exportSuccess` (EN/AR) للـ SnackBar عند النجاح على Web؛ APK (64.9 MB) ✅ + Web ✅ | `MissingPluginException: getTemporaryDirectory` كانت تُوقف التصدير بالكامل على الويب |
 | 2026-06-27 | **إصلاح خطأ لغة التفريغ الصوتي**: `ai_assistant_page.dart` — `transcribeAndSend()`: تغيير نموذج Whisper من `whisper-1` إلى `gpt-4o-transcribe` (كشف لغة أدق — يمنع تفريغ الإنجليزية كعربية)؛ تغيير `response_format` من `verbose_json` إلى `json` (gpt-4o-transcribe لا يدعم verbose_json)؛ `json['language']` غائب في الرد → `languageHint = null` → لا يُضاف prefix إجباري للغة → RULE 0 في system prompt يكتشف اللغة من النص مباشرة ويرد بها | إصلاح: رسائل صوتية إنجليزية كانت تُفرَّغ كعربية بسبب ضعف كشف اللغة في whisper-1؛ APK (64.9 MB) + Web ✅ |

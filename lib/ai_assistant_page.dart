@@ -566,13 +566,21 @@ DETECT the language of the user's message and ALWAYS reply in that EXACT languag
 • Voice message with detected language hint → use that language
 NEVER switch languages mid-conversation unless the user switches first.
 
-══════════ RULE 0.2 — NAME SCRIPT IN MIXED COMMANDS ══════════
-When the user writes a command in English but includes a name in Arabic script (e.g. "Create محمد as a supplier"):
-• DO NOT store the name as Arabic script automatically.
-• ASK the user: "Do you want the name stored as محمد (Arabic) or Mohammad (English)?"
-• Wait for their answer before creating the record.
-• Exception: if the user says "اعمل الازم" or "just do it" → use the Arabic script as-is.
-Same rule applies in Arabic commands with English names.
+══════════ RULE 0.2 — CONFIRM BEFORE CREATING ANY DOCUMENT ══════════
+Before creating ANY new record (Supplier, Customer, Employee, Item, Journal Entry, Purchase Order, Sales Order, etc.):
+1. SHOW the user what you are about to create:
+   "I'm about to create:
+   • Type: Supplier
+   • Name: Mohamed
+   Confirm? (yes / no)"
+2. WAIT for explicit confirmation before calling create_document or any FAC create tool.
+3. Exception: if the user already said "اعمل الازم" / "just do it" / "نفذ" / "confirm" → proceed without asking again.
+4. Exception: bulk operations explicitly requested (e.g. "create 10 suppliers from this list") → ask once for the whole batch.
+
+NAME SCRIPT — if the name could be Arabic written in Latin letters (e.g. "Mohamed", "Ahmed", "Hassan", "Ali", "Omar", "Ibrahim", "Khalil", "Yusuf") OR the user includes Arabic script in an English command:
+• ADD to the confirmation: "Note: Should the name be stored as Mohamed (English) or محمد (Arabic)?"
+• Use whatever the user confirms.
+• Exception: "اعمل الازم" → use the name as-is.
 
 ══════════ RULE 0.5 — IMAGE & FILE HANDLING ══════════
 ⚠️ PDF Arabic Text: If file content starts with "[PDF Content" or you notice reversed/garbled Arabic word order in a PDF, re-order the words correctly before processing. Arabic PDFs stored as raw streams may have reversed glyph order.
@@ -4773,6 +4781,15 @@ class _MessageBubble extends StatelessWidget {
 
   bool get isUser => message.role == 'user';
 
+  /// Detect text direction from first non-space character in the content.
+  static TextDirection _contentDir(String text) {
+    for (final r in text.runes) {
+      if (r >= 0x0590 && r <= 0x08FF) return TextDirection.rtl; // Arabic / Hebrew
+      if (r > 0x20) return TextDirection.ltr;
+    }
+    return TextDirection.ltr;
+  }
+
   void showFullImage(
     BuildContext context,
     List<int> bytes,
@@ -4848,13 +4865,19 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isArabic = AppLocalizations.of(context).isArabic;
-    final cairoFont = isArabic ? 'Cairo' : null;
-    final interFont = isArabic ? null : 'Inter';
     final c = AppColors.of(context);
 
     if (message.isWelcome) {
+      final cairoFont = isArabic ? 'Cairo' : null;
+      final interFont = isArabic ? null : 'Inter';
       return _buildWelcomeBubble(context, c, isArabic, cairoFont, interFont);
     }
+
+    // Detect text direction from message content — independent of app language.
+    final contentDir = _contentDir(message.text);
+    final isRtl = contentDir == TextDirection.rtl;
+    // Use Cairo for Arabic content, Inter for Latin content.
+    final contentFont = isRtl ? 'Cairo' : 'Inter';
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -4901,11 +4924,12 @@ class _MessageBubble extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         AppLocalizations.of(context).aiAssistant,
+                        // AI label uses app language font, not content font
                         style: TextStyle(
                           color: c.primary,
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          fontFamily: cairoFont,
+                          fontFamily: isArabic ? 'Cairo' : 'Inter',
                         ),
                       ),
                     ],
@@ -4922,12 +4946,16 @@ class _MessageBubble extends StatelessWidget {
               ],
 
               if (message.text.isNotEmpty)
-                MessageRenderer(
-                  text: message.text,
-                  fontFamily: cairoFont,
-                  onCreateChart: onCreateChart,
-                  onSendSystemEmail: onSendSystemEmail,
-                  onOpenDocument: onOpenDocument,
+                // Wrap in Directionality so text inside flows RTL/LTR based on content.
+                Directionality(
+                  textDirection: contentDir,
+                  child: MessageRenderer(
+                    text: message.text,
+                    fontFamily: contentFont,
+                    onCreateChart: onCreateChart,
+                    onSendSystemEmail: onSendSystemEmail,
+                    onOpenDocument: onOpenDocument,
+                  ),
                 ),
             ],
           ),
@@ -5288,14 +5316,16 @@ class _InputBarState extends State<_InputBar> {
       final json = jsonDecode(body) as Map<String, dynamic>;
 
       final text = (json['text'] as String? ?? '').trim();
-      final detectedLang = (json['language'] as String? ?? '').toLowerCase();
       if (!mounted) return;
       if (text.isNotEmpty) {
         widget.controller.text = text;
         widget.controller.selection = TextSelection.fromPosition(
           TextPosition(offset: text.length),
         );
-        final lang = detectedLang.isNotEmpty ? detectedLang : null;
+        // gpt-4o-transcribe with response_format:json returns {text} only — no 'language' field.
+        // Detect script from Unicode: Arabic/Hebrew block U+0590–U+08FF = RTL.
+        final bool hasRtl = text.runes.any((r) => r >= 0x0590 && r <= 0x08FF);
+        final String lang = hasRtl ? 'Arabic' : 'English';
         Future.delayed(
           const Duration(milliseconds: 100),
           () => widget.onSend(lang),
