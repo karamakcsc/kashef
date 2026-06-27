@@ -5250,8 +5250,10 @@ class _InputBarState extends State<_InputBar> {
               Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
             )
             ..headers['Authorization'] = 'Bearer $apiKey'
-            ..fields['model'] = 'whisper-1'
-            ..fields['response_format'] = 'verbose_json'
+            // gpt-4o-transcribe has stronger language detection than whisper-1
+            // and does not support verbose_json — use json (no language field returned)
+            ..fields['model'] = 'gpt-4o-transcribe'
+            ..fields['response_format'] = 'json'
             ..files.add(
               http.MultipartFile.fromBytes(
                 'file',
