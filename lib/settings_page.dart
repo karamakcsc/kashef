@@ -282,6 +282,14 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  String _backupFileName() {
+    final n = DateTime.now();
+    String two(int v) => v.toString().padLeft(2, '0');
+    final date = '${n.year}-${two(n.month)}-${two(n.day)}';
+    final time = '${two(n.hour)}-${two(n.minute)}-${two(n.second)}';
+    return 'Kashef_backup_${date}_$time.json';
+  }
+
   /// تصدير جميع الإعدادات — يكتب ملف JSON مؤقت ثم يعرض share sheet.
   Future<void> _exportSettings() async {
     // Capture l10n strings before any await to avoid BuildContext across async gap
@@ -315,7 +323,7 @@ class _SettingsPageState extends State<SettingsPage> {
         // Web: trigger browser download directly — no filesystem / share sheet
         downloadBytesInBrowser(
           utf8.encode(jsonStr),
-          'kcsc_ai_backup.json',
+          _backupFileName(),
           'application/json',
         );
         if (mounted) {
