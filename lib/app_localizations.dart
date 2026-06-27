@@ -111,6 +111,7 @@ class AppLocalizations {
     'exportTooltip':      {'en': 'Export Settings (Backup)', 'ar': 'تصدير الإعدادات (نسخ احتياطي)'},
     'importTooltip':      {'en': 'Import Settings',      'ar': 'استيراد الإعدادات'},
     'backupSubject':      {'en': 'Kashef — Settings Backup', 'ar': 'كاشف — إعدادات النسخ الاحتياطي'},
+    'exportSuccess':      {'en': 'Settings downloaded successfully.', 'ar': 'تم تنزيل الإعدادات بنجاح.'},
     'noFileContent':      {'en': 'No file content found.', 'ar': 'لم يُعثر على محتوى الملف.'},
     'notSettingsFile':    {'en': 'The file is not a valid settings file.', 'ar': 'الملف ليس ملف إعدادات صالحاً.'},
     'notKcscSettings':    {'en': 'File does not appear to be a Kashef settings file.', 'ar': 'الملف لا يبدو ملف إعدادات كاشف.'},
@@ -505,6 +506,7 @@ class AppLocalizations {
   String get exportTooltip       => _t('exportTooltip');
   String get importTooltip       => _t('importTooltip');
   String get backupSubject       => _t('backupSubject');
+  String get exportSuccess       => _t('exportSuccess');
   String get noFileContent       => _t('noFileContent');
   String get notSettingsFile     => _t('notSettingsFile');
   String get notKcscSettings     => _t('notKcscSettings');

@@ -2,7 +2,9 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'web_download.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -307,20 +309,36 @@ class _SettingsPageState extends State<SettingsPage> {
           k: prefs.getString(k) ?? '',
       };
 
-      // كتابة في مجلد cache مؤقت — لا يحتاج صلاحيات، متاح دائماً
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/kcsc_ai_backup.json');
-      await file.writeAsString(
-        const JsonEncoder.withIndent('  ').convert(data),
-      );
+      final jsonStr = const JsonEncoder.withIndent('  ').convert(data);
 
-      // فتح share sheet — المستخدم يختار (WhatsApp / Drive / Email / Save...)
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path, mimeType: 'application/json')],
-          subject: l.backupSubject,
-        ),
-      );
+      if (kIsWeb) {
+        // Web: trigger browser download directly — no filesystem / share sheet
+        downloadBytesInBrowser(
+          utf8.encode(jsonStr),
+          'kcsc_ai_backup.json',
+          'application/json',
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l.exportSuccess),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // Mobile / desktop: write temp file then open share sheet
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/kcsc_ai_backup.json');
+        await file.writeAsString(jsonStr);
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(file.path, mimeType: 'application/json')],
+            subject: l.backupSubject,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
