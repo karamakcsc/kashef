@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -74,9 +75,30 @@ class AppColors {
     aiHighlight: Color(0xFF3B82F6),
   );
 
+  // ── Arctic Frost (Web Light) ──────────────────────
+  static const AppColors arctic = AppColors._(
+    primary:     Color(0xFF0284C7), // sky-600
+    primaryDark: Color(0xFF0369A1), // sky-700
+
+    background:  Color(0xFFEEF8FF), // icy white-blue
+    surface:     Color(0xFFFFFFFF), // pure white cards
+    surfaceHigh: Color(0xFFD6EEFF), // frost fill / hover
+
+    textPrimary:   Color(0xFF0C2140), // deep ocean navy
+    textSecondary: Color(0xFF3D7EA6), // muted arctic sky
+    onPrimary:     Color(0xFFFFFFFF),
+    userBubble:    Color(0xFF7DD3FC), // sky-300
+
+    // ✨ AI
+    aiText:      Color(0xFF0C2140),
+    aiHighlight: Color(0xFF0284C7),
+  );
+
   // ── Context ──────────────────────────────────────
   static AppColors of(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    return brightness == Brightness.dark ? dark : light;
+    if (brightness == Brightness.dark) return dark;
+    if (kIsWeb) return arctic;
+    return light;
   }
 }
