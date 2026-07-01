@@ -50,7 +50,7 @@ Future<void> initBackgroundService() async {
   await android?.requestNotificationsPermission();
 
   // WorkManager — periodic task, minimum 15-minute interval
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await Workmanager().initialize(callbackDispatcher);
   await Workmanager().registerPeriodicTask(
     _kUniqueTaskName,
     _kTaskName,

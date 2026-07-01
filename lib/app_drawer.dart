@@ -5,6 +5,7 @@ import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
 import 'auth_state.dart';
+import 'aurora_widgets.dart';
 import 'dashboards_page.dart';
 import 'realtime_workflow_service.dart';
 
@@ -211,26 +212,25 @@ class _DrawerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return GradientHeader(
+      height: 90,
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       child: Row(
         children: [
-          // Avatar circle
+          // Avatar circle — white border on gradient background
           Container(
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppColors.of(context).primary.withValues(alpha: 0.2),
+              color: Colors.white.withValues(alpha: 0.20),
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.of(context).primary.withValues(alpha: 0.3), width: 1.5),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.55), width: 1.5),
             ),
             child: Center(
               child: Text(
-                username.isNotEmpty
-                    ? username[0].toUpperCase()
-                    : '?',
-                style: TextStyle(
-                    color: AppColors.of(context).textPrimary,
+                username.isNotEmpty ? username[0].toUpperCase() : '?',
+                style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
@@ -244,8 +244,8 @@ class _DrawerHeader extends StatelessWidget {
               children: [
                 Text(
                   username.isEmpty ? '—' : username,
-                  style: TextStyle(
-                      color: AppColors.of(context).textPrimary,
+                  style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
@@ -254,7 +254,7 @@ class _DrawerHeader extends StatelessWidget {
                   Text(
                     url,
                     style: TextStyle(
-                        color: AppColors.of(context).textSecondary, fontSize: 11),
+                        color: Colors.white.withValues(alpha: 0.75), fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
               ],

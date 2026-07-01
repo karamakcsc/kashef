@@ -538,6 +538,7 @@ class _HtmlTableState extends State<_HtmlTable> {
     if (to.isEmpty) return;
 
     if (kIsWeb) {
+      if (!ctx.mounted) return;
       await _openMailtoWeb(ctx, to, subject, h, d);
       return;
     }
@@ -1283,7 +1284,7 @@ class _SystemEmailButtonState extends State<_SystemEmailButton> {
 //
 // Nginx / base-href note:
 //   mailto: is a client-side OS protocol — no server routing involved.
-//   The /kcsc-ai/ base-href does not affect mailto: behaviour.
+//   The /kashef/ base-href does not affect mailto: behaviour.
 // ---------------------------------------------------------------------------
 Future<void> sendEmailViaOutlookDesktop({
   required BuildContext context,

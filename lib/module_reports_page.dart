@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import 'api_service.dart';
 import 'app_colors.dart';
+import 'aurora_widgets.dart';
 import 'report_view_page.dart';
 
 // ---------------------------------------------------------------------------
@@ -172,12 +173,11 @@ class _ModuleReportsPageState extends State<ModuleReportsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
+      appBar: GradientAppBar(
         title: Text(widget.workspaceName),
-        leading: const BackButton(),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             tooltip: 'Refresh',
             onPressed: _isLoading ? null : _loadReports,
           ),

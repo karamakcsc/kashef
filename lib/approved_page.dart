@@ -40,6 +40,7 @@ class _State extends State<ApprovedApprovalsPage> {
   bool   _refreshing = false;
   bool   _busy       = false;
   String _error      = '';
+  final Set<String> _dismissing = {}; // names currently fading out
 
   Map<String, List<_Doc>> _data          = {};
   String                  _search        = '';
@@ -382,11 +383,16 @@ class _State extends State<ApprovedApprovalsPage> {
 
   void _removeDoc(String dt, String dn) {
     if (!mounted) return;
-    setState(() {
-      final docs = _data[dt];
-      if (docs == null) return;
-      final remaining = docs.where((d) => d.name != dn).toList();
-      remaining.isEmpty ? _data.remove(dt) : _data[dt] = remaining;
+    setState(() => _dismissing.add(dn));
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (!mounted) return;
+      setState(() {
+        _dismissing.remove(dn);
+        final docs = _data[dt];
+        if (docs == null) return;
+        final remaining = docs.where((d) => d.name != dn).toList();
+        remaining.isEmpty ? _data.remove(dt) : _data[dt] = remaining;
+      });
     });
   }
 
@@ -585,12 +591,17 @@ class _State extends State<ApprovedApprovalsPage> {
           final item = items[i];
           if (item.isHeader) return _SectionHdr(doctype: item.doctype!, count: item.count!, c: c);
           if (item.isDoc) {
-            return _ApprovedCard(
-              doc:      item.doc!,
-              c:        c,
-              l:        l,
-              onTap:    () => _openDoc(item.doctype!, item.doc!.name),
-              onCancel: () => _cancelDoc(item.doctype!, item.doc!.name),
+            return AnimatedOpacity(
+              key: ValueKey(item.doc!.name),
+              opacity: _dismissing.contains(item.doc!.name) ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 260),
+              child: _ApprovedCard(
+                doc:      item.doc!,
+                c:        c,
+                l:        l,
+                onTap:    () => _openDoc(item.doctype!, item.doc!.name),
+                onCancel: () => _cancelDoc(item.doctype!, item.doc!.name),
+              ),
             );
           }
           return const SizedBox(height: 12);

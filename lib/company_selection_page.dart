@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_colors.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 
 class CompanySelectionPage extends StatefulWidget {
   const CompanySelectionPage({super.key});
@@ -36,7 +37,7 @@ class _CompanySelectionPageState extends State<CompanySelectionPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l.noCompany),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.warning,
         ),
       );
       return;
@@ -52,39 +53,40 @@ class _CompanySelectionPageState extends State<CompanySelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final l = AppLocalizations.of(context);
     return Scaffold(
-      backgroundColor: AppColors.of(context).background,
+      backgroundColor: c.background,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context).company),
+        title: Text(l.company),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            tooltip: AppLocalizations.of(context).settings,
+            tooltip: l.settings,
             onPressed: () async {
               await Navigator.pushNamed(context, '/settings');
-              _loadCompany(); // Refresh after returning from settings
+              _loadCompany();
             },
           ),
         ],
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            ? Center(child: CircularProgressIndicator(color: c.primary))
             : Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.business,
-                        size: 64, color: Colors.white54),
+                    Icon(Icons.business, size: 64, color: c.textSecondary),
                     const SizedBox(height: 24),
 
                     Text(
-                      AppLocalizations.of(context).selectedCompany,
+                      l.selectedCompany,
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: c.textSecondary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.2,
@@ -98,24 +100,26 @@ class _CompanySelectionPageState extends State<CompanySelectionPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 18),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: c.surfaceHigh,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white24),
+                        border: Border.all(
+                            color: c.primary.withValues(alpha: 0.18)),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.lock_outline,
-                              color: Colors.white38, size: 18),
+                          Icon(Icons.lock_outline,
+                              color: c.textSecondary.withValues(alpha: 0.7),
+                              size: 18),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               _companyName.isEmpty
-                                  ? AppLocalizations.of(context).notConfigured
+                                  ? l.notConfigured
                                   : _companyName,
                               style: TextStyle(
                                 color: _companyName.isEmpty
-                                    ? Colors.white30
-                                    : Colors.white,
+                                    ? c.textSecondary.withValues(alpha: 0.5)
+                                    : c.textPrimary,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -127,19 +131,25 @@ class _CompanySelectionPageState extends State<CompanySelectionPage> {
 
                     const SizedBox(height: 8),
                     Text(
-                      AppLocalizations.of(context).companyInSettings,
-                      style: TextStyle(color: Colors.white38, fontSize: 11),
+                      l.companyInSettings,
+                      style: TextStyle(
+                          color: c.textSecondary.withValues(alpha: 0.7),
+                          fontSize: 11),
                       textAlign: TextAlign.center,
                     ),
 
                     const SizedBox(height: 40),
 
-                    ElevatedButton.icon(
+                    GradientButton(
                       onPressed: _companyName.isEmpty ? null : _proceed,
-                      icon: const Icon(Icons.arrow_forward),
-                      label: Text(AppLocalizations.of(context).continueToModules),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(l.continueToModules),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward,
+                              color: Colors.white, size: 18),
+                        ],
                       ),
                     ),
 
@@ -147,10 +157,7 @@ class _CompanySelectionPageState extends State<CompanySelectionPage> {
                     TextButton(
                       onPressed: () =>
                           Navigator.pushNamed(context, '/settings'),
-                      child: Text(
-                        AppLocalizations.of(context).changeCompany,
-                        style: TextStyle(color: Colors.white54),
-                      ),
+                      child: Text(l.changeCompany),
                     ),
                   ],
                 ),

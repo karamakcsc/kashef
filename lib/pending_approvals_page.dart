@@ -8,7 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart';
 import 'app_colors.dart';
+import 'app_gradients.dart';
 import 'app_localizations.dart';
+import 'aurora_background.dart';
+import 'aurora_widgets.dart';
 import 'fac_mcp_service.dart' show FacDiagnostics;
 import 'realtime_workflow_service.dart';
 import 'workflow_service.dart';
@@ -360,6 +363,7 @@ class _State extends State<PendingApprovalsPage> {
   final _searchCtrl  = TextEditingController();
   Timer? _debounce;
   Timer? _autoTimer;
+  final Set<String> _dismissing = {}; // names currently fading out
   late  WorkflowEventCallback _rtCb;
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -925,20 +929,25 @@ class _State extends State<PendingApprovalsPage> {
     }
   }
 
-  /// Removes a single document from [_data] immediately (optimistic UI update).
+  /// Removes a single document with a fade-out micro-interaction.
   void _removeDoc(String dt, String dn) {
     if (!mounted) return;
-    setState(() {
-      final docs = _data[dt];
-      if (docs == null) return;
-      final remaining = docs.where((d) => d.name != dn).toList();
-      if (remaining.isEmpty) {
-        _data.remove(dt);
-      } else {
-        _data[dt] = remaining;
-      }
+    setState(() => _dismissing.add(dn));
+    Future.delayed(const Duration(milliseconds: 280), () {
+      if (!mounted) return;
+      setState(() {
+        _dismissing.remove(dn);
+        final docs = _data[dt];
+        if (docs == null) return;
+        final remaining = docs.where((d) => d.name != dn).toList();
+        if (remaining.isEmpty) {
+          _data.remove(dt);
+        } else {
+          _data[dt] = remaining;
+        }
+      });
+      debugPrint('[Pending] removed $dt/$dn from UI');
     });
-    debugPrint('[Pending] removed $dt/$dn from UI');
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -974,33 +983,35 @@ class _State extends State<PendingApprovalsPage> {
     final l = AppLocalizations.of(context);
     debugPrint('[Pending] build() — total=$_total, loading=$_loading, display=${_display.length} groups');
 
-    return Scaffold(
-      backgroundColor: c.background,
-      appBar: _appBar(c, l),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _searchBar(c, l),
-            _filterRow(c, l),
-            if (_isFallback) _fallbackBanner(c),
-            Expanded(child: _body(c, l)),
-          ],
+    return Stack(
+      children: [
+        // Solid base so blobs have a background to float on
+        ColoredBox(color: c.background, child: const SizedBox.expand()),
+        // Animated aurora blobs (full-screen, behind Scaffold)
+        Positioned.fill(child: AuroraBackground(child: const SizedBox.shrink())),
+        // Transparent Scaffold so blobs show through
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: _appBar(c, l),
+          body: SafeArea(
+            child: Column(
+              children: [
+                _searchBar(c, l),
+                _filterRow(c, l),
+                if (_isFallback) _fallbackBanner(c),
+                Expanded(child: _body(c, l)),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
   // ── AppBar ────────────────────────────────────────────────────────────────
 
-  PreferredSizeWidget _appBar(AppColors c, AppLocalizations l) => AppBar(
-    backgroundColor: c.primary,
-    foregroundColor: Colors.white,
-    iconTheme: const IconThemeData(color: Colors.white),
-    systemOverlayStyle: SystemUiOverlayStyle.light,
-    elevation: 3,
-    shadowColor: Colors.black.withValues(alpha: 0.25),
-    titleSpacing: 0,
-    title: Padding(
+  PreferredSizeWidget _appBar(AppColors c, AppLocalizations l) {
+    final titleWidget = Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1031,8 +1042,9 @@ class _State extends State<PendingApprovalsPage> {
             ),
         ],
       ),
-    ),
-    actions: [
+    );
+
+    final actions = <Widget>[
       if (_refreshing)
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
@@ -1051,8 +1063,10 @@ class _State extends State<PendingApprovalsPage> {
         onPressed: _showDebugPanel,
       ),
       const SizedBox(width: 4),
-    ],
-  );
+    ];
+
+    return _SheenAppBar(titleWidget: titleWidget, actions: actions);
+  }
 
   // ── Debug Panel ───────────────────────────────────────────────────────────
 
@@ -1258,6 +1272,13 @@ class _State extends State<PendingApprovalsPage> {
       items.add(_Item.spacer());
     });
 
+    // Pre-compute per-card index for staggered entry delays
+    int docCounter = 0;
+    final docIndices = <String, int>{};
+    for (final item in items) {
+      if (item.isDoc) docIndices[item.doc!.name] = docCounter++;
+    }
+
     return RefreshIndicator(
       onRefresh: _manualRefresh,
       color: c.primary,
@@ -1272,12 +1293,24 @@ class _State extends State<PendingApprovalsPage> {
                 doctype: item.doctype!, count: item.count!, c: c);
           }
           if (item.isDoc) {
-            return _Card(
-              doc:    item.doc!,
-              c:      c,
-              onTap:  () => _openDoc(item.doctype!, item.doc!.name),
-              onAct:  (a) => _executeAction(item.doctype!, item.doc!.name, a),
-              clrFn:  _clr,
+            final isDismissing = _dismissing.contains(item.doc!.name);
+            return AnimatedOpacity(
+              key: ValueKey(item.doc!.name),
+              opacity: isDismissing ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 260),
+              child: AnimatedScale(
+                scale: isDismissing ? 0.92 : 1.0,
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOut,
+                child: _Card(
+                  doc:       item.doc!,
+                  c:         c,
+                  cardIndex: docIndices[item.doc!.name] ?? 0,
+                  onTap:     () => _openDoc(item.doctype!, item.doc!.name),
+                  onAct:     (a) => _executeAction(item.doctype!, item.doc!.name, a),
+                  clrFn:     _clr,
+                ),
+              ),
             );
           }
           return const SizedBox(height: 12);
@@ -1387,7 +1420,9 @@ class _SectionHdr extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     margin:  const EdgeInsets.only(bottom: 10, top: 4),
     decoration: BoxDecoration(
-      color: c.primary, borderRadius: BorderRadius.circular(12)),
+      gradient: AppGradients.auroraGradient(Theme.of(context).brightness),
+      borderRadius: BorderRadius.circular(12),
+    ),
     child: Row(children: [
       Expanded(
         child: Text(doctype,
@@ -1410,9 +1445,10 @@ class _SectionHdr extends StatelessWidget {
 
 // ── Approval card ─────────────────────────────────────────────────────────────
 
-class _Card extends StatelessWidget {
+class _Card extends StatefulWidget {
   final _Doc    doc;
   final AppColors c;
+  final int     cardIndex;
   final VoidCallback onTap;
   final void Function(_Act) onAct;
   final Color Function(String) clrFn;
@@ -1420,70 +1456,110 @@ class _Card extends StatelessWidget {
   const _Card({
     required this.doc,
     required this.c,
+    required this.cardIndex,
     required this.onTap,
     required this.onAct,
     required this.clrFn,
   });
 
   @override
-  Widget build(BuildContext context) => Card(
-    elevation: 2,
-    color:  c.surface,
-    margin: const EdgeInsets.only(bottom: 10),
-    shape:  RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(14),
-      side: BorderSide(color: c.surfaceHigh, width: 1),
-    ),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+  State<_Card> createState() => _CardState();
+}
 
-            // Name + chevron
-            Row(children: [
-              Expanded(
-                child: Text(doc.name,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
-                        color: c.textPrimary)),
-              ),
-              Icon(Icons.chevron_right_rounded, color: c.textSecondary, size: 20),
-            ]),
+class _CardState extends State<_Card> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double>   _fade;
+  late final Animation<Offset>   _slide;
 
-            const SizedBox(height: 10),
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _fade  = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end:   Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
 
-            // State badge + date
-            Row(children: [
-              _StateBadge(state: doc.state),
-              const Spacer(),
-              Icon(Icons.calendar_today_outlined, size: 12, color: c.textSecondary),
-              const SizedBox(width: 4),
-              Text(doc.creation,
-                  style: TextStyle(color: c.textSecondary, fontSize: 12)),
-            ]),
+    final delay = Duration(
+        milliseconds: widget.cardIndex.clamp(0, 8) * 60);
+    Future.delayed(delay, () {
+      if (mounted) _ctrl.forward();
+    });
+  }
 
-            // Action buttons
-            if (doc.actions.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              Divider(height: 1, color: c.surfaceHigh),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8, runSpacing: 6,
-                children: doc.actions.map((a) => _ActBtn(
-                  label: a.label,
-                  color: clrFn(a.label),
-                  onTap: () => onAct(a),
-                )).toList(),
-              ),
-            ],
-          ],
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final doc   = widget.doc;
+    final c     = widget.c;
+    final clrFn = widget.clrFn;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: FadeTransition(
+        opacity: _fade,
+        child: SlideTransition(
+          position: _slide,
+          child: GlassCard(
+            padding:      const EdgeInsets.all(16),
+            borderRadius: 14,
+            onTap:        widget.onTap,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                // Name + chevron
+                Row(children: [
+                  Expanded(
+                    child: Text(doc.name,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,
+                            color: c.textPrimary)),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: c.textSecondary, size: 20),
+                ]),
+
+                const SizedBox(height: 10),
+
+                // State badge + date
+                Row(children: [
+                  _StateBadge(state: doc.state),
+                  const Spacer(),
+                  Icon(Icons.calendar_today_outlined, size: 12, color: c.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(doc.creation,
+                      style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                ]),
+
+                // Action buttons
+                if (doc.actions.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Divider(height: 1, color: c.surfaceHigh),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8, runSpacing: 6,
+                    children: doc.actions.map((a) => _ActBtn(
+                      label: a.label,
+                      color: clrFn(a.label),
+                      onTap: () => widget.onAct(a),
+                    )).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ── State badge ───────────────────────────────────────────────────────────────
@@ -1508,24 +1584,41 @@ class _StateBadge extends StatelessWidget {
 
 // ── Action button ─────────────────────────────────────────────────────────────
 
-class _ActBtn extends StatelessWidget {
+class _ActBtn extends StatefulWidget {
   final String label;
   final Color  color;
   final VoidCallback onTap;
   const _ActBtn({required this.label, required this.color, required this.onTap});
 
   @override
-  Widget build(BuildContext context) => ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: color,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+  State<_ActBtn> createState() => _ActBtnState();
+}
+
+class _ActBtnState extends State<_ActBtn> {
+  bool _pressing = false;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTapDown:   (_) => setState(() => _pressing = true),
+    onTapUp:     (_) => setState(() => _pressing = false),
+    onTapCancel: ()  => setState(() => _pressing = false),
+    child: AnimatedScale(
+      scale:    _pressing ? 0.92 : 1.0,
+      duration: const Duration(milliseconds: 110),
+      curve:    _pressing ? Curves.easeIn : Curves.easeOutBack,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: widget.color,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        onPressed: widget.onTap,
+        child: Text(AppLocalizations.of(context).wfLocalizeAction(widget.label)),
+      ),
     ),
-    onPressed: onTap,
-    child: Text(AppLocalizations.of(context).wfLocalizeAction(label)),
   );
 }
 
@@ -1653,4 +1746,103 @@ class _SkeletonCardState extends State<_SkeletonCard>
     decoration: BoxDecoration(
       color: c.surfaceHigh, borderRadius: BorderRadius.circular(6)),
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _SheenAppBar — Aurora gradient AppBar with periodic sheen sweep
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _SheenAppBar extends StatefulWidget implements PreferredSizeWidget {
+  final Widget        titleWidget;
+  final List<Widget>  actions;
+
+  const _SheenAppBar({
+    required this.titleWidget,
+    required this.actions,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  State<_SheenAppBar> createState() => _SheenAppBarState();
+}
+
+class _SheenAppBarState extends State<_SheenAppBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _sheen;
+
+  @override
+  void initState() {
+    super.initState();
+    _sheen = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _sheen.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return AppBar(
+      title:        widget.titleWidget,
+      actions:      widget.actions,
+      titleSpacing: 0,
+      elevation:    3,
+      shadowColor:  Colors.black.withValues(alpha: 0.25),
+      backgroundColor:    Colors.transparent,
+      foregroundColor:    Colors.white,
+      iconTheme:          const IconThemeData(color: Colors.white),
+      actionsIconTheme:   const IconThemeData(color: Colors.white),
+      systemOverlayStyle: SystemUiOverlayStyle.light,
+      flexibleSpace: ClipRect(
+        child: AnimatedBuilder(
+          animation: _sheen,
+          builder: (ctx, _) {
+            final screenW = MediaQuery.of(ctx).size.width;
+            final sheenX  = (_sheen.value * 2.0 - 0.5) * screenW;
+            return Stack(
+              children: [
+                // Base aurora gradient
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.auroraGradient(brightness),
+                    ),
+                  ),
+                ),
+                // Sweeping sheen stripe
+                Positioned(
+                  left:   sheenX - 60,
+                  top:    -12,
+                  bottom: -12,
+                  width:  120,
+                  child: Transform.rotate(
+                    angle: -0.3,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0),
+                            Colors.white.withValues(alpha: 0.16),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
 }

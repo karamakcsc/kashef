@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 import 'document_viewer_page.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1312,21 +1313,20 @@ class _ReportViewPageState extends State<ReportViewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
+      appBar: GradientAppBar(
         title: Text(widget.reportName,
-            style: TextStyle(fontSize: 15),
+            style: const TextStyle(fontSize: 15),
             overflow: TextOverflow.ellipsis),
-        leading: const BackButton(),
         actions: [
           if (_phase == _Phase.results)
             IconButton(
-              icon: const Icon(Icons.tune),
+              icon: const Icon(Icons.tune, color: Colors.white),
               tooltip: AppLocalizations.of(context).changeFilters,
               onPressed: () => setState(() => _phase = _Phase.form),
             ),
           if (_phase == _Phase.form || _phase == _Phase.results)
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh, color: Colors.white),
               tooltip: AppLocalizations.of(context).refreshFilters,
               onPressed: () => _loadFilterDefs(forceRefresh: true),
             ),

@@ -4,12 +4,12 @@ import 'dart:math' show max;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 import 'fac_mcp_service.dart';
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -820,14 +820,8 @@ class _DashboardDetailPageState extends State<DashboardDetailPage> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(AppColors c, AppLocalizations l) => AppBar(
-    backgroundColor: c.primary,
-    foregroundColor: Colors.white,
-    iconTheme: const IconThemeData(color: Colors.white),
-    systemOverlayStyle: SystemUiOverlayStyle.light,
+  PreferredSizeWidget _buildAppBar(AppColors c, AppLocalizations l) => GradientAppBar(
     elevation: 2,
-    shadowColor: Colors.black.withValues(alpha: 0.2),
-    titleSpacing: 0,
     title: Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Column(
@@ -836,7 +830,7 @@ class _DashboardDetailPageState extends State<DashboardDetailPage> {
         children: [
           Text(widget.dashboardName,
               style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                   fontSize: 16, letterSpacing: 0.1),
               overflow: TextOverflow.ellipsis),
           if (_lastUpdated != null)
@@ -847,7 +841,6 @@ class _DashboardDetailPageState extends State<DashboardDetailPage> {
       ),
     ),
     actions: [
-      // Refresh indicator / button
       if (_refreshing || _busy)
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
@@ -858,7 +851,6 @@ class _DashboardDetailPageState extends State<DashboardDetailPage> {
         IconButton(
           icon: const Icon(Icons.refresh_rounded, color: Colors.white),
           tooltip: l.refresh,
-          // Check _busy to prevent double-tap race condition
           onPressed: _busy ? null : _manualRefresh,
         ),
       IconButton(

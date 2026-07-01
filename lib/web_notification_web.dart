@@ -26,8 +26,8 @@ Future<void> showWebNotification({
       title,
       web.NotificationOptions(
         body: body,
-        tag: tag ?? 'kcsc-ai-workflow',
-        icon: '/kcsc-ai/icons/Icon-192.png',
+        tag: tag ?? 'kashef-workflow',
+        icon: '/kashef/icons/Icon-192.png',
       ),
     );
   } catch (_) {}

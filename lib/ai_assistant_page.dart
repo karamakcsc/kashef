@@ -16,6 +16,7 @@ import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_drawer.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 import 'chat_history_page.dart';
 import 'message_renderer.dart';
 import 'realtime_workflow_service.dart';
@@ -3623,7 +3624,8 @@ Rule: never combine a chart and a table in the same reply.''';
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.of(context).background,
       drawer: const AppDrawer(current: DrawerSection.aiAssistant),
-      appBar: AppBar(
+      appBar: GradientAppBar(
+        elevation: 2,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -3633,15 +3635,13 @@ Rule: never combine a chart and a table in the same reply.''';
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: AppColors.of(
-                      context,
-                    ).primary.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.smart_toy_outlined,
                     size: 18,
-                    color: AppColors.of(context).primary,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -3659,7 +3659,7 @@ Rule: never combine a chart and a table in the same reply.''';
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.of(context).surfaceHigh,
+                      color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -3674,7 +3674,7 @@ Rule: never combine a chart and a table in the same reply.''';
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.of(context).textSecondary,
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
                   ),
@@ -3686,14 +3686,14 @@ Rule: never combine a chart and a table in the same reply.''';
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: AppColors.of(context).primary.withValues(alpha: 0.15),
+                  color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '⚡ $_activeModuleLabel',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 9,
-                    color: AppColors.of(context).primary,
+                    color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -3704,28 +3704,28 @@ Rule: never combine a chart and a table in the same reply.''';
         actions: [
           if (_isSaving)
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
-                  color: AppColors.of(context).textSecondary,
+                  color: Colors.white.withValues(alpha: 0.70),
                   strokeWidth: 2,
                 ),
               ),
             ),
           IconButton(
-            icon: Icon(Icons.add_comment_outlined),
+            icon: const Icon(Icons.add_comment_outlined, color: Colors.white),
             tooltip: AppLocalizations.of(context).newChatSession,
             onPressed: _messages.any((m) => m.role == 'user') ? _newChat : null,
           ),
           IconButton(
-            icon: Icon(Icons.history_rounded),
+            icon: const Icon(Icons.history_rounded, color: Colors.white),
             tooltip: AppLocalizations.of(context).chatHistory,
             onPressed: _openHistory,
           ),
           IconButton(
-            icon: Icon(Icons.delete_sweep_outlined),
+            icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white),
             tooltip: AppLocalizations.of(context).clearChat,
             onPressed: _messages.any((m) => m.role == 'user')
                 ? _clearChat

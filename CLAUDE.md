@@ -33,7 +33,6 @@ lib/
 ├── app_localizations.dart       # نظام الترجمة EN/AR (190+ نص، يدوي)
 ├── app_drawer.dart              # القائمة الجانبية المشتركة
 ├── login_page.dart              # صفحة تسجيل الدخول الرئيسية
-├── user_login_page.dart         # ⚠️ LEGACY — غير مستخدمة، لا تعدّلها
 ├── settings_page.dart           # إدارة الإعدادات والبيانات الاعتمادية
 ├── company_selection_page.dart  # تأكيد الشركة للجلسة
 ├── modules_page.dart            # عرض مساحات ERPNext (GridView، عمودان) — ⚠️ مخفية من التنقل (الملف محفوظ)
@@ -53,7 +52,7 @@ lib/
 ├── workflow_service.dart        # Singleton — getWorkflow/getTransitions/applyWorkflow/safeApplyWorkflow
 ├── realtime_workflow_service.dart # Singleton — Socket.IO + Polling (WorkflowRepository) + listeners
 ├── document_viewer_page.dart    # عارض مستندات read-only — FAC runWorkflow → safeApplyWorkflow fallback
-├── pending_approvals_page.dart  # قائمة الموافقات — FAC MCP HTTP مباشر + i18n كامل AR/EN + AppBar احترافي (white arrow + systemOverlayStyle + elevation) + subtitle
+├── pending_approvals_page.dart  # قائمة الموافقات — FAC MCP HTTP مباشر + i18n كامل AR/EN + AppBar احترافي + Aurora Live Design (GlassCard + AuroraBackground + _SheenAppBar + staggered entry + spring buttons)
 ├── approved_page.dart           # المستندات المعتمدة — Workflow Action (Completed) + تجميع + Cancel عبر FAC + i18n كامل AR/EN + AppBar احترافي
 ├── n8n_chat_page.dart           # ⚠️ صفحة ثابتة — بدون أي API calls بعد إزالة كود المراقبة؛ تعرض زر انتقال لـ n8n Chat. الكلاس N8nChatPage محفوظ للتوافق مع المسار /n8n-chat
 ├── n8n_chat_service.dart        # N8nWebhookChatService — اتصال مباشر بـ n8n webhook + يقرأ URL من SharedPreferences ('n8n_chat_url' — يُضبط في Settings) + retry ×2 + timeout 15s + session ID + getWebhookUrl(). صفر dependency على ERPNext أو ApiService
@@ -67,8 +66,7 @@ kcsc_erp/kcsc_erp/api/
                          #   Logging: frappe.log_error لكل نوع خطأ
 
 images/
-├── KCSC_Logo.png        # شعار قديم — محفوظ كمرجع
-└── kashef_logo.jpeg     # الشعار الرسمي الحالي — أيقونة التطبيق + الشعار الافتراضي (خلفية بيضاء، أيقونة عين زرقاء)
+└── kashef_logo.jpeg     # الشعار الرسمي الوحيد — أيقونة التطبيق + الشعار الافتراضي (خلفية بيضاء، أيقونة عين زرقاء)
 
 test/
 └── widget_test.dart             # اختبارات MyApp و AppColors
@@ -647,67 +645,80 @@ location /webhook/ {
 
 ## 8. نظام الألوان والتصميم
 
-### 8.1 AppColors
-> استخدم **`app_colors.dart` فقط**.
+### 8.1 AppColors — Aurora Live Palette
+> استخدم **`app_colors.dart` فقط**. لا تستخدم قيم hex مباشرة في الـ widgets.
 
 ```dart
-// ── الألوان الأساسية ───────────────────────────────────────────────────
-// Light (Mobile): primary=blue-600 (#2563EB)
-// Dark:           primary=blue-500 (#3B82F6)
-// Arctic (Web):   primary=sky-600  (#0284C7)  ← kIsWeb + light
-AppColors.of(context).primary      // أزرق — للأزرار والعناصر التفاعلية
-AppColors.of(context).primaryDark  // أزرق داكن — للحالات المضغوطة
+// ── Aurora Live — Light ───────────────────────────────────────────────
+// primary    = indigo-500  #6366F1   primaryDark = indigo-600  #4F46E5
+// background = #F5F4FD     surface   = #FFFFFF      surfaceHigh = #EEEDFB
+// textPrimary= #1E1B4B     textSecondary = #5B5F86
+// userBubble = indigo-400  #818CF8   aiHighlight = violet-600  #7C3AED
 
-// ── الخلفيات ──────────────────────────────────────────────────────────
-AppColors.of(context).background   // الخلفية الرئيسية
-AppColors.of(context).surface      // البطاقات، الـ Drawer، فقاعة AI
-AppColors.of(context).surfaceHigh  // حقول الإدخال، الشرائح، التنقل النشط
+// ── Aurora Live — Dark ────────────────────────────────────────────────
+// primary    = indigo-400  #818CF8   primaryDark = indigo-500  #6366F1
+// background = #0B0B16     surface   = #16182A      surfaceHigh = #1F2236
+// textPrimary= #F2F2FA     textSecondary = #9A9CC0
+// userBubble = indigo-400  #818CF8   aiHighlight = violet-400  #A78BFA
 
-// ── النصوص ────────────────────────────────────────────────────────────
+// ── الحالات (static) — Aurora semantic ──────────────────────────────
+AppColors.success  // Color(0xFF059669) — emerald-600
+AppColors.warning  // Color(0xFFD97706) — amber-600
+AppColors.error    // Color(0xFFE11D48) — rose-600
+
+AppColors.of(context).primary       // indigo — للأزرار والعناصر التفاعلية
+AppColors.of(context).background    // الخلفية الرئيسية
+AppColors.of(context).surface       // البطاقات، الـ Drawer، فقاعة AI
+AppColors.of(context).surfaceHigh   // حقول الإدخال، الشرائح، التنقل النشط
 AppColors.of(context).textPrimary   // النص الرئيسي
 AppColors.of(context).textSecondary // التلميحات، الطوابع الزمنية
-AppColors.of(context).onPrimary     // نص فوق الأزرق (أبيض)
-
-// ── فقاعة المستخدم ────────────────────────────────────────────────────
-AppColors.of(context).userBubble   // blue-400 (Light/Dark) | sky-300 (Arctic/Web)
-
-// ── AI / Markdown ─────────────────────────────────────────────────────
-AppColors.of(context).aiText       // نص ردود الـ AI
-AppColors.of(context).aiHighlight  // تمييز العناصر في ردود الـ AI
-
-// ── الحالات (static) ──────────────────────────────────────────────────
-AppColors.success  // Color(0xFF22C55E) — green-500
-AppColors.warning  // Color(0xFFF59E0B) — amber-500
-AppColors.error    // Color(0xFFEF4444) — red-500
+AppColors.of(context).userBubble    // فقاعة رسائل المستخدم
+AppColors.of(context).aiText        // نص ردود الـ AI
+AppColors.of(context).aiHighlight   // تمييز العناصر في ردود الـ AI
 ```
-
-**قاعدة:** لا تستخدم قيم hex مباشرة في الـ widgets — دائماً عبر `AppColors`.
 
 **ثيمات التطبيق:**
 
 | الثيم | المنصة | الحالة |
 |-------|--------|--------|
-| `AppColors.light` / `AppTheme.light` | Mobile — Light | افتراضي |
-| `AppColors.dark`  / `AppTheme.dark`  | كل المنصات — Dark | Dark mode |
-| `AppColors.arctic`/ `AppTheme.arctic`| **Web — Light فقط** | مُفعَّل بـ `kIsWeb` |
+| `AppColors.light` / `AppTheme.light` | جميع المنصات — Light | **افتراضي (موحَّد)** |
+| `AppColors.dark`  / `AppTheme.dark`  | جميع المنصات — Dark | Dark mode |
+| `AppColors.arctic`/ `AppTheme.arctic`| — | **محفوظ كمرجع — غير مُفعَّل** |
 
-`AppColors.of(context)` يُعيد `arctic` تلقائياً على الويب في Light mode — لا تغيير في الكود الآخر.
+`AppColors.of(context)` يُعيد `light` أو `dark` فقط — **لا `arctic` بعد الآن** (`kIsWeb` branch محذوف من `of()`).
 
-### 8.2 إرشادات التصميم
+### 8.2 ملفات Aurora الجديدة
+
+| الملف | الوصف |
+|-------|-------|
+| `lib/app_gradients.dart` | `AppGradients.auroraGradient(brightness)` — 135° indigo→violet→fuchsia + `glowShadow` + `blobColors` |
+| `lib/aurora_background.dart` | `AuroraBackground` — 3 blobs متحركة + RepaintBoundary — تُستخدم في Login فقط |
+| `lib/aurora_widgets.dart` | `GradientAppBar` + `GradientButton` + `GlassCard` + `GradientHeader` |
+
+**`GradientAppBar`** — يُستخدم في جميع الصفحات بدلاً من `AppBar` الملوَّن. يُطبّق تلقائياً: gradient + white foreground + white iconTheme + `SystemUiOverlayStyle.light`. لا تحتاج لـ `backgroundColor`/`iconTheme`/`systemOverlayStyle` عند استخدامه.
+
+```dart
+// ✅ الصحيح — بدلاً من AppBar(backgroundColor: c.primary, ...)
+GradientAppBar(
+  title: Text('عنوان الصفحة'),
+  elevation: 2,
+  actions: [
+    IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _load),
+  ],
+)
+// ملاحظة: جميع أيقونات actions يجب أن تكون color: Colors.white صراحةً
+```
+
+### 8.3 إرشادات التصميم
 - **Material Design 3** — `useMaterial3: true`
-- **الخط الافتراضي** — `fontFamily: 'Cairo'` مُضبوط في `app_theme.dart` لكلا الثيمَين (يحل "Could not find a set of Noto fonts" على Flutter Web)
+- **الخط الافتراضي** — `fontFamily: 'Cairo'` في `app_theme.dart` لكلا الثيمَين
 - **RTL/LTR** — تلقائي بناءً على `app_language`
-- **SafeArea** — مُطبَّقة على `body:` في جميع الصفحات (15 صفحة) — **لا تحذفها**
-- **شبكة الوحدات** — `GridView.count` بعمودين
+- **SafeArea** — مُطبَّقة على `body:` في جميع الصفحات — **لا تحذفها**
 - **فقاعات الدردشة** — عرض 78% من الشاشة
-- **RTL أولاً** — التطبيق مُصمَّم للعربية، تحقق دائماً من التوافق
-- **AppBar الملوّن** — عند استخدام `backgroundColor: c.primary` أو `AppColors.success`، أضف دائماً:
-  ```dart
-  iconTheme: const IconThemeData(color: Colors.white), // يُصلح سهم الرجوع
-  systemOverlayStyle: SystemUiOverlayStyle.light,       // شريط الحالة أبيض
-  elevation: 2, shadowColor: Colors.black.withValues(alpha: 0.2),
-  ```
-  السبب: `appBarTheme.iconTheme(color: textSecondary)` في `app_theme.dart` يُلغي `foregroundColor` المحلي — `iconTheme` المحلي يتجاوزه.
+- **RTL أولاً** — التطبيق مُصمَّم للعربية
+- **micro-interactions** — `AnimatedOpacity(260ms)` + `_dismissing Set` في Pending/Approved pages عند إزالة البطاقات
+- **AppBar في جميع الصفحات** — استخدم `GradientAppBar` دائماً (موحَّد)
+- **Pending/Approved AppBars** — تبقى بألوانها الخاصة (`c.primary` / `AppColors.success`) لأنها علامة بصرية — لا `GradientAppBar` هنا
 
 ---
 
@@ -837,8 +848,8 @@ Container(color: Color(0xFFXXXXXX))
 | `RealtimeWorkflowService` — Socket.IO | يحتاج `hooks.py` + `api.py` على الخادم (انظر `FAC_REALTIME_SETUP.md`) | 🟡 متوسطة |
 | `SharedPreferences` | بيانات حساسة بلا تشفير — يحتاج `flutter_secure_storage` | 🟡 متوسطة |
 | `AuthState` | لا استمرارية — يُفقد عند إغلاق التطبيق | 🟡 متوسطة |
-| `user_login_page.dart` | Legacy — غير مدمجة في التدفق الرئيسي | 🟢 منخفضة |
-| `fikra_app/fikra_app/` | نسخة مكررة قديمة — مستبعدة عبر `analysis_options.yaml`، يُنصح بحذفها | 🟡 متوسطة |
+| ~~`user_login_page.dart`~~ | ~~Legacy — غير مدمجة في التدفق الرئيسي~~ | ✅ حُذف |
+| ~~`fikra_app/fikra_app/`~~ | ~~نسخة مكررة قديمة~~ | ✅ لا يوجد (المجلد محذوف) |
 | `_sendEmailViaSystem()` | يعتمد على `frappe.core.doctype.communication.email.make` — قد يحتاج System Manager | 🟡 متوسطة |
 | `extract_file_content` — FAC OCR (خادم) | PaddleOCR يفشل لأن subprocess يُشغَّل بـ `sys.executable` (Frappe Python 3.14 بلا paddlepaddle) بدلاً من `/opt/ocr-service/venv/bin/python` — **الحل في التطبيق:** Claude يستخدم native vision للصور بدلاً من FAC OCR (انظر §14 سجل 2026-05-12) | 🟡 متوسطة — يعمل عبر native vision |
 
@@ -1067,6 +1078,7 @@ Container(color: Color(0xFFXXXXXX))
 | 2026-06-23 | **تصفير الإصدار**: `pubspec.yaml` — `version: 1.0.78+78` → `version: 1.0.0+1`؛ `build.gradle.kts` يقرأ الإصدار تلقائياً من pubspec | إعادة البداية بإصدار جديد بعد إعادة التسمية |
 | 2026-06-23 | **إعادة تسمية التطبيق إلى "Kashef (كاشف)"**: تغيير "Faheem"/"فهيم" → "Kashef"/"كاشف" في: `app_localizations.dart` (6 مفاتيح)، `main.dart`، `ai_assistant_page.dart`، `background_service.dart`، `realtime_workflow_service.dart`، `AndroidManifest.xml`، `web/manifest.json`، `web/index.html` | طلب المستخدم |
 | 2026-06-28 | **تغيير Android Application ID**: `build.gradle.kts` — `applicationId`/`namespace` → `com.kcsc.kashef` (كان `com.example.kcsc_ai` — يُرفض بـ "package appears invalid" عند التثبيت)؛ نقل `MainActivity.kt` من `com/example/kcsc_ai/` إلى `com/kcsc/kashef/` | `com.example` prefix يُطلق Google Play Protect warning → "App not installed as package appears to be invalid" عند أول تثبيت |
+| 2026-06-29 | **Aurora Live Theme — تطبيق شامل على جميع الصفحات**: إضافة 4 ملفات جديدة: `lib/app_gradients.dart` (`AppGradients.auroraGradient()` — 135° indigo→violet→fuchsia + `glowShadow` + `blobColors`)؛ `lib/aurora_background.dart` (`AuroraBackground` — 3 blobs متحركة + RepaintBoundary — للـ Login فقط)؛ `lib/aurora_widgets.dart` (`GradientAppBar` + `GradientButton` + `GlassCard` + `GradientHeader`)؛ `app_colors.dart` — إعادة كتابة اللوحة بالكامل: Light primary `#6366F1` (indigo-500) / Dark primary `#818CF8` (indigo-400)؛ `AppColors.of()` يُعيد `light`/`dark` فقط (حُذف `kIsWeb` branch — `arctic` محفوظ لكن غير مُفعَّل)؛ static colors: `success=#059669`, `warning=#D97706`, `error=#E11D48`؛ `app_theme.dart` + `main.dart` — ثيمان موحَّدان (Light/Dark) على جميع المنصات؛ تطبيق `GradientAppBar` على 13 صفحة: `login_page.dart`, `app_drawer.dart`, `company_selection_page.dart`, `pending_approvals_page.dart`, `approved_page.dart`, `settings_page.dart`, `chat_history_page.dart`, `module_reports_page.dart`, `report_view_page.dart`, `document_viewer_page.dart`, `dashboards_page.dart`, `dashboard_detail_page.dart`, `ai_assistant_page.dart`؛ إضافة `AnimatedOpacity(260ms)` + `_dismissing Set` micro-interactions في Pending/Approved؛ إصلاح: `deprecated_member_use` في `background_service.dart` (`isInDebugMode` محذوف)؛ `use_build_context_synchronously` في `message_renderer.dart` (guard `!ctx.mounted`)؛ `flutter analyze` → **0 issues**؛ APK ✅ + Web ✅ | توحيد الهوية البصرية للتطبيق بتصميم Aurora indigo/violet/fuchsia موحَّد |
 | 2026-06-29 | **Arctic Frost Theme — ويب فقط**: `app_colors.dart` — إضافة `AppColors.arctic` (ثيم الصقيع القطبي: خلفية `#EEF8FF`، بطاقات بيضاء ناصعة مع إطار `#BAE6FD`، Primary `#0284C7` sky-600، نص `#0C2140` كحلي عميق، فقاعة مستخدم `#7DD3FC` sky-300)؛ تعديل `AppColors.of()` بـ `kIsWeb` guard — يُعيد `arctic` على الويب في Light mode بدلاً من `light`؛ `app_theme.dart` — إضافة `AppTheme.arctic` مع `ColorScheme`/`inputDecorationTheme`/`cardTheme`/`chipTheme` مُصمَّمة بألوان الجليد (borders `#BAE6FD`، fill `#D6EEFF`)؛ `main.dart` — `theme: kIsWeb ? AppTheme.arctic : AppTheme.light` — الموبايل صفر تغيير؛ Web build ✅ | طلب المستخدم: تطبيق ثيم Arctic Frost على الويب فقط مع إمكانية الرجوع بسهولة |
 | 2026-06-28 | **تحسين دقة التفريغ الصوتي — مصطلحات ERP ثنائية اللغة**: `ai_assistant_page.dart` — إضافة `prompt` field لـ `gpt-4o-transcribe`: مصطلحات ERP بالإنجليزية (supplier, invoice, purchase order...) + بالعربية (مورّد، فاتورة، أمر شراء...) — النموذج يُفضّل المصطلحات المعروفة فونيتياً → يمنع "Arfan/sublayer" بدل "Irfan/supplier" | خطأ فونيتي: `gpt-4o-transcribe` بدون domain context يُخطئ في الكلمات التقنية؛ `prompt` يُرشد النموذج لتفضيل المصطلحات الصحيحة |
 | 2026-06-28 | **RULE 0.2 — الأسماء متعددة الخطوط في الأوامر المختلطة**: `ai_assistant_page.dart` — إضافة RULE 0.2 في system prompt: عند وجود اسم بالعربية في أمر إنجليزي (أو العكس)، AI يسأل عن الخط المطلوب قبل إنشاء السجل؛ استثناء: "اعمل الازم" → يستخدم الاسم كما هو | إنشاء "محمد" بالعربية في سجل إنجليزي بدون استفسار — المستخدم قد يريد "Mohammad" |
@@ -1078,5 +1090,7 @@ Container(color: Color(0xFFXXXXXX))
 | 2026-06-27 | **إصلاح تصدير الإعدادات على Flutter Web**: `settings_page.dart` — `_exportSettings()`: إضافة `kIsWeb` branch — على Web: `downloadBytesInBrowser(utf8.encode(jsonStr), 'kcsc_ai_backup.json', 'application/json')` يُنزِّل الملف مباشرة في المتصفح بدون `getTemporaryDirectory`/`File`/`SharePlus` (كلها غير مدعومة على Web)؛ على Mobile/Desktop: يبقى السلوك القديم (temp file + SharePlus share sheet) بدون أي تغيير؛ `app_localizations.dart` — إضافة مفتاح `exportSuccess` (EN/AR) للـ SnackBar عند النجاح على Web؛ APK (64.9 MB) ✅ + Web ✅ | `MissingPluginException: getTemporaryDirectory` كانت تُوقف التصدير بالكامل على الويب |
 | 2026-06-27 | **إصلاح خطأ لغة التفريغ الصوتي**: `ai_assistant_page.dart` — `transcribeAndSend()`: تغيير نموذج Whisper من `whisper-1` إلى `gpt-4o-transcribe` (كشف لغة أدق — يمنع تفريغ الإنجليزية كعربية)؛ تغيير `response_format` من `verbose_json` إلى `json` (gpt-4o-transcribe لا يدعم verbose_json)؛ `json['language']` غائب في الرد → `languageHint = null` → لا يُضاف prefix إجباري للغة → RULE 0 في system prompt يكتشف اللغة من النص مباشرة ويرد بها | إصلاح: رسائل صوتية إنجليزية كانت تُفرَّغ كعربية بسبب ضعف كشف اللغة في whisper-1؛ APK (64.9 MB) + Web ✅ |
 | 2026-06-23 | **تغيير شعار التطبيق إلى Kashef**: نسخ `assets/images/kashef logo.jpeg` → `images/kashef_logo.jpeg`؛ `pubspec.yaml` — `flutter_launcher_icons` يُحدَّث لـ `kashef_logo.jpeg` (خلفية `#FFFFFF`)؛ `settings_page.dart` — `buildLogoWidget()` fallback → `images/kashef_logo.jpeg`؛ توليد أيقونات Android عبر `dart run flutter_launcher_icons`؛ توليد أيقونات Web (favicon 32px + PWA 192/512 + maskable) عبر PowerShell System.Drawing | طلب المستخدم: هوية بصرية جديدة بشعار أيقونة العين الزرقاء |
+| 2026-07-01 | **Aurora Live Design — `pending_approvals_page.dart`**: تطبيق تصميم Aurora Live بدون أي تغيير في المنطق: (1) `Stack([ColoredBox, Positioned.fill(AuroraBackground), Scaffold(transparent)])` لتركيب الـ blobs خلف الـ cards؛ (2) `_SheenAppBar` — AppBar مع شريط لمعان دوار (rotate −0.3 rad، AnimationController 3s repeat) عبر `ClipRect+Stack+Positioned`؛ (3) `_Card` → `StatefulWidget` مع staggered entry: `FadeTransition+SlideTransition(Offset(0,0.06)→0)` بتأخير `cardIndex.clamp(0,8)*60ms`؛ (4) `_ActBtn` → `StatefulWidget` مع spring-press: `AnimatedScale(0.92)` على `onTapDown`؛ (5) `_SectionHdr` بـ gradient بدل لون مسطح؛ ألوان حصراً من `AppColors` | طلب المستخدم: Aurora Live pilot بدون أي تغيير في API أو منطق البيانات |
+| 2026-07-01 | **Branding sweep — إكمال + حذف ملفات غير مستخدمة**: تحديث: `lib/web_notification_web.dart` (tag → `kashef-workflow`، icon → `/kashef/icons/Icon-192.png`)؛ `web/index.html` (description → `"Kashef — ERP AI Assistant"`)؛ `lib/message_renderer.dart` (comment base-href → `/kashef/`)؛ حذف: `lib/user_login_page.dart` (Legacy — صفر مراجع خارجية)؛ `images/KCSC_Logo.png` (استُبدل بـ `kashef_logo.jpeg`)؛ `analysis_options.yaml` — حذف كتلة `analyzer.exclude: [fikra_app/**]` (المجلد غير موجود — dead config)؛ APK (65.0 MB) ✅ + Web `/kashef/` ✅ | تنظيف المشروع من الملفات المهجورة وإكمال هوية Kashef |
 | 2026-06-10 | **إعادة تسمية التطبيق إلى "Faheem (فهيم)" + تغيير الشعار**: **(1) اسم التطبيق** — تغيير "KCSC AI" → "Faheem" / "فهيم" في: `app_localizations.dart` (`appTitle`/`welcome`/`backupSubject`/`notKcscSettings`/`agentName`/`assistantIntro`)، `main.dart` (title)، `background_service.dart` (عنوان الإشعار)، `realtime_workflow_service.dart` (عنوان SnackBar/إشعار)، `ai_assistant_page.dart` (`agentName` + `agentDescAr/En` + empty state)، `web/manifest.json` (name/short_name/description)، `web/index.html` (title + apple-mobile-web-app-title)، `AndroidManifest.xml` (android:label)؛ **(2) الشعار** — تغيير من `images/KCSC_Logo.png` إلى `images/faheem_logo.png` في: `pubspec.yaml` (flutter_launcher_icons — خلفية `#FFFFFF` بدل `#0F172A`)، `settings_page.dart` (`buildLogoWidget()` fallback)؛ توليد أيقونات Android تلقائياً عبر `dart run flutter_launcher_icons`؛ توليد أيقونات Web (favicon 32px + PWA 192/512 + maskable) عبر PowerShell System.Drawing؛ **(3) Web URL** — تغيير base-href من `/kcsc-ai/` إلى `/faheem/`؛ `flutter build web --release --base-href /faheem/` عبر PowerShell (Git Bash يُحوّل المسار خطأً) | طلب المستخدم: إعادة تسمية التطبيق والمساعد الذكي باسم "فهيم" مع هوية بصرية جديدة |
 | 2026-05-09 | **نظام Workflow الديناميكي — إعادة بناء شاملة (9 خطوات)**: (1) **`lib/workflow_models.dart`** (جديد) — `PendingDoc` + `WorkflowSource` enum (workflowAction/dynamicScan)؛ (2) **`lib/fac_validator.dart`** (جديد) — FAC Permission layer: `hasReadPermission` (frappe.client.has_permission) + `getValidatedTransitions` + `validateBeforeApply` (pre-execution FAC gate) + `canAccessDocType`؛ (3) **`lib/workflow_repository.dart`** (جديد) — طبقة البيانات المركزية تجمع SOURCE A (Workflow Action records) + SOURCE B (Dynamic scan لكل DocType نشط عليه workflow بـ limit=30 + get_transitions للتحقق) — كاش 30s/60s — dedup بـ doctype::docname — SOURCE A أولوية؛ (4) **`lib/workflow_service.dart`** — إضافة `safeApplyWorkflow()` يستدعي `FacValidator.validateBeforeApply()` قبل `applyWorkflow()` — يمنع 417 EXPECTATION FAILED؛ (5) **`lib/pending_approvals_page.dart`** — إعادة بناء كاملة: يستخدم `WorkflowRepository` بدل API مباشر، source badge للعناصر من Dynamic Scan، `_DynamicScanBanner` عند وجود عناصر مكتشفة، invalidate + refresh بعد كل workflow action؛ (6) **`lib/realtime_workflow_service.dart`** — `_loadPendingCount` يستخدم `WorkflowRepository.fetchCount()` (SOURCE A+B) + fallback للـ API المباشر، `broadcastLocal` يستدعي `WorkflowRepository().invalidate()`؛ (7) **`lib/document_viewer_page.dart`** — استبدال `applyWorkflow` بـ `safeApplyWorkflow` لكل أزرار الـ transitions؛ (8) **`lib/app_localizations.dart`** — 6 مفاتيح جديدة: `wfSourceDynamic`/`wfDynamicScanNotice`/`wfFacDenied`/`wfStateChanged`/`wfValidating`/`wfNoTransitions`؛ `pubspec.yaml` — `1.0.69+69` | إصلاح جذري شامل: Draft invoices تظهر الآن، مستندات بدون Workflow Action تُكتشف، FAC يتحقق قبل كل إجراء، 417 errors ممنوعة |

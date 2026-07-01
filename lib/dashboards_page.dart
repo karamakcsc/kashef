@@ -6,6 +6,7 @@ import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_drawer.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 import 'dashboard_detail_page.dart';
 
 // ─── Model ───────────────────────────────────────────────────────────────────
@@ -161,18 +162,14 @@ class _DashboardsPageState extends State<DashboardsPage> {
     return Scaffold(
       backgroundColor: c.background,
       drawer: const AppDrawer(current: DrawerSection.dashboards),
-      appBar: AppBar(
-        backgroundColor: c.primary,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
+      appBar: GradientAppBar(
         elevation: 2,
-        shadowColor: Colors.black.withValues(alpha: 0.2),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(l.dashboards,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 17)),
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
             if (_lastUpdated != null)
               Text(
                 l.updatedAtLine(_formatTime(_lastUpdated!)),

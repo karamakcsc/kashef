@@ -4,6 +4,8 @@ import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
 import 'auth_state.dart';
+import 'aurora_background.dart';
+import 'aurora_widgets.dart';
 import 'realtime_workflow_service.dart';
 import 'settings_page.dart' show buildLogoWidget;
 
@@ -104,95 +106,95 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ── Logo card ─────────────────────────────────────────────
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.of(context).surface,
-                      borderRadius: BorderRadius.circular(20),
+      body: AuroraBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ── Logo card ───────────────────────────────────────────
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.of(context).surface,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.of(context).primary.withValues(alpha: 0.10),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: buildLogoWidget(path: _customLogoPath, height: 80),
                     ),
-                    child: buildLogoWidget(path: _customLogoPath, height: 80),
                   ),
-                ),
-                const SizedBox(height: 28),
+                  const SizedBox(height: 28),
 
-                // ── Title ─────────────────────────────────────────────────
-                Text(
-                  l.signIn,
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: AppColors.of(context).textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-
-                // ── Server hint ───────────────────────────────────────────
-                if (_configuredUrl.isNotEmpty)
+                  // ── Title ───────────────────────────────────────────────
                   Text(
-                    _configuredUrl,
+                    l.signIn,
                     style: TextStyle(
-                        color: AppColors.of(context).textSecondary, fontSize: 13),
+                      fontSize: 24,
+                      color: AppColors.of(context).textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 6),
 
-                const SizedBox(height: 28),
+                  // ── Server hint ─────────────────────────────────────────
+                  if (_configuredUrl.isNotEmpty)
+                    Text(
+                      _configuredUrl,
+                      style: TextStyle(
+                          color: AppColors.of(context).textSecondary, fontSize: 13),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                    ),
 
-                // ── Banners ───────────────────────────────────────────────
-                if (!_hasCredentials)
-                  _InfoBanner(
-                    icon: Icons.info_outline,
-                    color: AppColors.warning,
-                    message: l.noCredentials,
-                  ),
-                if (_errorMessage != null)
-                  _InfoBanner(
-                    icon: Icons.error_outline,
-                    color: AppColors.error,
-                    message: _errorMessage!,
-                  ),
+                  const SizedBox(height: 28),
 
-                const SizedBox(height: 8),
+                  // ── Banners ─────────────────────────────────────────────
+                  if (!_hasCredentials)
+                    _InfoBanner(
+                      icon: Icons.info_outline,
+                      color: AppColors.warning,
+                      message: l.noCredentials,
+                    ),
+                  if (_errorMessage != null)
+                    _InfoBanner(
+                      icon: Icons.error_outline,
+                      color: AppColors.error,
+                      message: _errorMessage!,
+                    ),
 
-                // ── Login button ──────────────────────────────────────────
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
+                  const SizedBox(height: 8),
+
+                  // ── Login button ─────────────────────────────────────────
+                  GradientButton(
                     onPressed: (_isLoading || !_hasCredentials) ? null : _login,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
-                          )
-                        : Text(l.login),
+                    loading: _isLoading,
+                    child: Text(l.login),
                   ),
-                ),
 
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // ── Settings link ─────────────────────────────────────────
-                TextButton.icon(
-                  onPressed: () async {
-                    await Navigator.pushNamed(context, '/settings');
-                    _checkCredentials();
-                  },
-                  icon: const Icon(Icons.settings_outlined, size: 18),
-                  label: Text(l.configureSettings),
-                ),
-              ],
+                  // ── Settings link ────────────────────────────────────────
+                  TextButton.icon(
+                    onPressed: () async {
+                      await Navigator.pushNamed(context, '/settings');
+                      _checkCredentials();
+                    },
+                    icon: const Icon(Icons.settings_outlined, size: 18),
+                    label: Text(l.configureSettings),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

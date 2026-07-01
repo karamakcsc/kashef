@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 import 'fac_mcp_service.dart';
 import 'realtime_workflow_service.dart';
 import 'workflow_service.dart';
@@ -221,7 +222,8 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
 
     return Scaffold(
       backgroundColor: c.background,
-      appBar: AppBar(
+      appBar: GradientAppBar(
+        elevation: 2,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -230,13 +232,13 @@ class _DocumentViewerPageState extends State<DocumentViewerPage> {
               widget.docname,
               style: TextStyle(
                   fontSize: 11,
-                  color: c.onPrimary.withValues(alpha: 0.7)),
+                  color: Colors.white.withValues(alpha: 0.70)),
             ),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             tooltip: l.refresh,
             onPressed: _load,
           ),

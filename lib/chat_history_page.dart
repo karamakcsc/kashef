@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 
 // ---------------------------------------------------------------------------
 // ChatHistoryPage — browse & load saved AI conversations from ERPNext Notes
@@ -179,15 +180,11 @@ class _ChatHistoryPageState extends State<ChatHistoryPage> {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
-        backgroundColor: AppColors.of(context).surface,
-        iconTheme: IconThemeData(color: AppColors.of(context).textPrimary),
-        title: Text(l10n.chatHistory,
-            style: TextStyle(color: AppColors.of(context).textPrimary,
-                fontWeight: FontWeight.w600)),
+      appBar: GradientAppBar(
+        title: Text(l10n.chatHistory),
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh, color: AppColors.of(context).textSecondary),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadSessions,
           ),
         ],

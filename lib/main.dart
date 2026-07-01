@@ -141,8 +141,7 @@ class _MyAppState extends State<MyApp> {
         },
 
         // ── Theme ────────────────────────────────────────────────────────
-        // Web uses Arctic Frost light theme; mobile uses the standard palette.
-        theme:     kIsWeb ? AppTheme.arctic : AppTheme.light,
+        theme:     AppTheme.light, // Aurora Live — unified across all platforms
         darkTheme: AppTheme.dark,
         themeMode: _themeMode,
 

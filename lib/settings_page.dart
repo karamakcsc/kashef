@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app_colors.dart';
 import 'app_localizations.dart';
+import 'aurora_widgets.dart';
 import 'main.dart';
 
 /// Returns the widget to display as the app logo.
@@ -551,7 +552,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final l = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.of(context).background,
-      appBar: AppBar(
+      appBar: GradientAppBar(
         title: Text(l.settings),
         actions: [
           IconButton(
